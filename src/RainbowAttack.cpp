@@ -182,5 +182,6 @@ int RainbowAttack::intoTables(bitset<HASH_NBR_BITS> fingerprint)
 
 bitset<HASH_NBR_BITS> RainbowAttack::hashDES(bitset<HASH_NBR_BITS> reducedPass)
 {
-    ;//TO DO
+    //TO DO
+    return 0;
 }
