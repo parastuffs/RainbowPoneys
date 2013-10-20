@@ -18,43 +18,55 @@ void RainbowAttack::tablesCreation()
     //We list all the existing words
     int i, j, limit;
     limit = pow(2, PASS_NBR_BITS);
-    bitset<HASH_NBR_BITS> word;
+    bitset<PASS_NBR_BITS> pass;
+    bitset<PASS_NBR_BITS> word;
+    bitset<FING_NBR_BITS> fingPrint;
 
     for(i=0; i < limit ; i++)
     {
         //we copy the word (automatic conversion from int to bitset)
-        word = i;
+        word = pass = i;
 
-        //We apply 4 reductions functions
+        //We apply 4 reduction functions
         for(j=0; j < 4; j++)
         {
-            //We hash the actual word and receive the first HASH_NBR_BITS bits (!! HASH_NBR_BITS >= FING_NBR_BITS)
-            word = this->hashDES(word);
+            //We hash the actual word and receive the first HASH_NBR_BITS bits 
+	    //(!! HASH_NBR_BITS >= FING_NBR_BITS)
+	    //Question: do we recieve to LSB or MSB?
+	    //There is another problem: we should give DES the plain text,
+	    //that is a 12 bits word.
+            fingPrint = this->hashDES(word);
 
             //We apply the reduction function
-            word = this->reductionFunction(j, word);
+            word = this->reductionFunction(j, fingPrint);
         }
 
         //We have to hash one more time
-        word = this->hashDES(word);
+        fingPrint = this->hashDES(word);
 
-        //We watch if the hashed word already exist into the tables, if yes, we go to the next word without saving the actual
-        if(this->intoTables(word) >= 0)
+        //We watch if the hashed word already exists in the tables, if it does,
+	//we go to the next word without saving the current
+        if(this->intoTables(fingPrint) >= 0)
             continue;
 
         //We save the final word
         for(j=0; j < FING_NBR_BITS; j++)
-            m_tables[m_tablesLength].set(j,word[j]);
+        	m_tables[m_tablesLength].set(j,fingPrint[j]);
+	for(j=0;j<PASS_NBR_BITS;j++)
+		m_dictionary[m_tablesLength].set(j,pass[j]);
         m_tablesLength++;
     }
 
     //Done :D!
 }
 
-bitset<HASH_NBR_BITS> RainbowAttack::reductionFunction(int number, bitset<HASH_NBR_BITS> fingerprint)
+bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number, 
+		bitset<FING_NBR_BITS> fingerprint)
 {
     int i;
-    bitset<HASH_NBR_BITS> word;
+    //This is wrong, to reduction function reduces the fingerprint
+    //to a word the same length as the password, 12 bits.
+    bitset<FING_NBR_BITS> word;
 
     if(number == 0)
     {
@@ -85,19 +97,22 @@ bitset<HASH_NBR_BITS> RainbowAttack::reductionFunction(int number, bitset<HASH_N
         }
     }
 
-    return word;
+    return 0;//TO CHANGE, don't have the time right now.
 }
 
-void RainbowAttack::findPassword(bitset<HASH_NBR_BITS> fingerprint)
+void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
 {
 
-    //ATTENTION : Méthode seulement valable pour les 2 étapes sur les 3 principales! C'est-à-dire fonctionne
-    //si Fs trouvé dans la table, ainsi que si c'est F', F'', F''' et F'''' mais ça ne fonctionne pas pour aller
-    //plus loin que ça avec l'histoire de la queue car je ne vois pas comment retrouver le pass dans ce cas-là, même avec l'idée de Brian...
+    //ATTENTION : Méthode seulement valable pour les 2 étapes sur les 
+    //3 principales! C'est-à-dire fonctionne
+    //si Fs trouvé dans la table, ainsi que si c'est F', F'', F''' et 
+    //F'''' mais ça ne fonctionne pas pour aller
+    //plus loin que ça avec l'histoire de la queue car je ne vois pas 
+    //comment retrouver le pass dans ce cas-là, même avec l'idée de Brian...
 
     int id=-1, i, j;
-    bitset<HASH_NBR_BITS> pass;// (and not <PASS_NBR_BITS> !)
-    bitset<HASH_NBR_BITS> originalFingerprint;
+    bitset<PASS_NBR_BITS> pass;// (and not <PASS_NBR_BITS> !) => Why not ? It has to have to same length as a password, not a hash.
+    bitset<FING_NBR_BITS> originalFingerprint;
     originalFingerprint = fingerprint;
 
     //Look if the fingerprint is into the tables, and give its corresponding ID
@@ -111,20 +126,27 @@ void RainbowAttack::findPassword(bitset<HASH_NBR_BITS> fingerprint)
             fingerprint = this->hashDES(pass);
         }
         else
-        {//We try to have the password corresponding to the actual step
+        {//We try to have the password corresponding to the current step
 
-            //We take the password corresponding to the actual fingerprint (but it's not the true password because there were 4 reductions and 5 hashes), whatever the value of i
+            //We take the password corresponding to the actual fingerprint 
+	    //(but it's not the true password because there were 4 reductions 
+	    //and 5 hashes), whatever the value of i
             for(j=0; j < PASS_NBR_BITS; j++)
                 pass.set(j,m_tables[id][j]);
 
-            //We make the intermediate steps to find the true password (if i=3 the for() is useless, it's normal according to what I understood.)
+            //We make the intermediate steps to find the true password 
+	    //(if i=3 the for() is useless, it's normal according to what 
+	    //I understood.)
+
+		//I add this temp, but we have to find a workaround
+		bitset<FING_NBR_BITS> tempFing;
             for(j=0; j < 3-i; j++)
             {
-                pass = this->hashDES(pass);
-                pass = this->reductionFunction(j, pass);
+                tempFing = this->hashDES(pass);
+                pass = this->reductionFunction(j, tempFing);
             }
 
-            break;
+            break;//Mauvaise pratique
         }
     }
 
@@ -144,10 +166,10 @@ void RainbowAttack::findPassword(bitset<HASH_NBR_BITS> fingerprint)
 
         //Useful for the presentation
         cout << "Original fingerprint:";
-        for(i=0; i < HASH_NBR_BITS; i++)
+        for(i=0; i < FING_NBR_BITS; i++)
             cout << originalFingerprint[i];
         cout << endl << "Found fingerprint:";
-        for(i=0; i < HASH_NBR_BITS; i++)
+        for(i=0; i < FING_NBR_BITS; i++)
             cout << fingerprint[i];
     }
     else
@@ -156,7 +178,7 @@ void RainbowAttack::findPassword(bitset<HASH_NBR_BITS> fingerprint)
     }
 }
 
-int RainbowAttack::intoTables(bitset<HASH_NBR_BITS> fingerprint)
+int RainbowAttack::intoTables(bitset<FING_NBR_BITS> fingerprint)
 {
     int i, j;
     bool ok=false;
@@ -173,14 +195,14 @@ int RainbowAttack::intoTables(bitset<HASH_NBR_BITS> fingerprint)
         if(ok == true)
         {
             id = i;
-            break;
+            break;//Mauvaise pratique
         }
     }
 
     return id;
 }
 
-bitset<HASH_NBR_BITS> RainbowAttack::hashDES(bitset<HASH_NBR_BITS> reducedPass)
+bitset<FING_NBR_BITS> RainbowAttack::hashDES(bitset<PASS_NBR_BITS> reducedPass)
 {
     //TO DO
     return 0;
