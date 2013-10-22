@@ -11,6 +11,8 @@
 
 using namespace std;
 
+const int PASS_NBR_BITS = 12;
+
 int main(int argc, char* argv[])
 {
 	 
