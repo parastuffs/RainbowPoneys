@@ -1,7 +1,7 @@
 #include <iostream>
 #include <bitset>
 #include <math.h>
-#include "src/RainbowAttack.cpp"
+#include "include/RainbowAttack.h"
 
 using namespace std;
 

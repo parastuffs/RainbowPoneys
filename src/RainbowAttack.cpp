@@ -6,6 +6,7 @@ RainbowAttack::RainbowAttack()
 {
     m_tablesLength=0;
     this->tablesCreation();
+
 }
 
 RainbowAttack::~RainbowAttack()
@@ -204,13 +205,40 @@ int RainbowAttack::intoTables(bitset<FING_NBR_BITS> fingerprint)
 
 bitset<FING_NBR_BITS> RainbowAttack::hashDES(bitset<PASS_NBR_BITS> reducedPass)
 {
-	//First things first, we need to extend the password to 56 bits.
-	//However DES needs a 64 bits key, the 8 MSB being the parity
-	//bits. In our case, we do not verify them, so their value does
-	//not matter. Let's just set them to zero.
-	bitset<HASH_NBR_BITS> = reducedPass;//Autocompletion with zeros
-
-
+	//Beware, the message encoded with DES is constant!
+	//The only thing that changes from one iteration to the other
+	//is the key, which is extended to 64 bits.
+	byte key[8] = {0,0,0,0,0,0,0,0};
+	//On a le bit de parité en fin de chaque byte. Les 6 premiers bytes seront à 0.
+	//Ensuite, Le 1er bit du 8e byte est le bit de parité. On le met à 0, osef.
+	//Ensuite on doit décaler les 8 bit utiles d'une place vers la gauche (on multiplie
+	//par 2). Le 8e sera donc renvoyé vers le  7e byte. Attention, il sera envoyé à la
+	//deuxième position du 7e byte puisque la première est occupée par le bit de parité.
+	//On aura donc quelque chose qui ressemble à :
+	//| 0 0 b12 b11 b10 b9 b8 p7 | b7 b6 b5 b4 b3 b2 b1 p8 |
+	//où pi est le bit de parité du byte i.
+	bitset<8> temp = (reducedPass << 1).to_ulong();//On garde bits 7 à 1
+	key[7] = temp.to_ulong();
+	temp = (reducedPass >> 7).to_ulong();//On garde bits 12 à 8
+	temp.set(7,0);//bit de parité, on s'en fout, en soit.
+	key[6] = temp.to_ulong();
 	
-    return 0;
+	
+	byte cipher[CryptoPP::DES::BLOCKSIZE];
+	
+	CryptoPP::ECB_Mode<CryptoPP::DES>::Encryption e;
+	e.SetKey(key,sizeof(key));
+	e.ProcessData(cipher,message,sizeof(message));
+	
+	//Not very nice way to do it.
+	bitset<8> temp1 = cipher[CryptoPP::DES::BLOCKSIZE-2];
+	bitset<8> temp2 = cipher[CryptoPP::DES::BLOCKSIZE-1];
+	bitset<8> temp3 = cipher[CryptoPP::DES::BLOCKSIZE];
+
+	bitset<FING_NBR_BITS> fingerprint(string(temp1.to_string()+temp2.to_string()
+												+temp3.to_string()));
+
+	//cout << "fingerprint: '" << fingerprint << "'" << endl;
+
+	return fingerprint;
 }

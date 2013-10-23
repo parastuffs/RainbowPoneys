@@ -1,14 +1,25 @@
 #ifndef RAINBOWATTACK_H
 #define RAINBOWATTACK_H
+
 #include <iostream>
 #include <bitset>
 #include <math.h>
+#include <string>
+#include "crypto++/des.h"
+#include "crypto++/modes.h"
+#include "crypto++/filters.h"
+#include "crypto++/osrng.h"
+#include "crypto++/hex.h"
+
+#include <iomanip>
+#include <cstdio>
 
 using namespace std;
 
 int const PASS_NBR_BITS = 12;
 int const HASH_NBR_BITS = 64;
 int const FING_NBR_BITS = 24;
+byte const message[] = {0,0,0,0,0,0,0,0};//64 bits
 
 class RainbowAttack
 {
