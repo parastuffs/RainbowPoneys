@@ -204,6 +204,13 @@ int RainbowAttack::intoTables(bitset<FING_NBR_BITS> fingerprint)
 
 bitset<FING_NBR_BITS> RainbowAttack::hashDES(bitset<PASS_NBR_BITS> reducedPass)
 {
-    //TO DO
+	//First things first, we need to extend the password to 56 bits.
+	//However DES needs a 64 bits key, the 8 MSB being the parity
+	//bits. In our case, we do not verify them, so their value does
+	//not matter. Let's just set them to zero.
+	bitset<HASH_NBR_BITS> = reducedPass;//Autocompletion with zeros
+
+
+	
     return 0;
 }

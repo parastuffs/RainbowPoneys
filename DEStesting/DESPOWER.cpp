@@ -72,8 +72,32 @@ int main(int argc, char* argv[])
 	bitset<8> secondBitset = secondWord;
 	cout << "secondWord: '" << secondWord << "'" << endl;
 	cout << "secondBitset: '" << secondBitset << "'" << endl;
-	
 */
+
+	bitset<12> bsW(string("101001100001"));
+	int n = 64/8;
+	byte word[] = {0,0,0,0,0,0,0,0};
+	//On a le bit de parité en fin de chaque byte. Les 6 premiers bytes seront à 0.
+	//Ensuite, Le 1er bit du 8e byte est le bit de parité. On le met à 0, osef.
+	//Ensuite on doit décaler les 8 bit utiles d'une place vers la gauche (on multiplie
+	//par 2). Le 8e sera donc renvoyé vers le  7e byte. Attention, il sera envoyé à la
+	//deuxième position du 7e byte puisque la première est occupée par le bit de parité.
+	//On aura donc quelque chose qui ressemble à :
+	//| 0 0 b12 b11 b10 b9 b8 p7 | b7 b6 b5 b4 b3 b2 b1 p8 |
+	//où pi est le bit de parité du byte i.
+	bitset<8> temp = (bsW << 1).to_ulong();//On garde bits 7 à 1
+	word[7] = temp.to_ulong();
+	temp = (bsW >> 7).to_ulong();//On garde bits 12 à 8
+	temp.set(7,0);//bit de parité, on s'en fout, en soit.
+	word[6] = temp.to_ulong();
+
+	/*
+	bitset<8> temp = (bsW << 8).to_ulong();
+	cout << temp << endl;
+	cout << "bit: " << bsW[11] << endl;
+	*/
+
+/*
 	//Code from the cryptoPP's wiki
 
 	CryptoPP::AutoSeededRandomPool prng;
@@ -139,7 +163,7 @@ int main(int argc, char* argv[])
 		)
 	);
 	cout << "Decoded Text: " << encoded << endl;
-
+*/
 
 
 	return 0;
