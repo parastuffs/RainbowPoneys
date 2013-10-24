@@ -31,7 +31,7 @@ void RainbowAttack::tablesCreation()
         //We apply 4 reduction functions
         for(j=0; j < 4; j++)
         {
-            //We hash the actual word and receive the first HASH_NBR_BITS bits 
+            //We hash the actual word and receive the first HASH_NBR_BITS bits
 	    //(!! HASH_NBR_BITS >= FING_NBR_BITS)
 	    //Question: do we recieve to LSB or MSB?
 	    //There is another problem: we should give DES the plain text,
@@ -46,42 +46,40 @@ void RainbowAttack::tablesCreation()
         fingPrint = this->hashDES(word);
 
         //We watch if the hashed word already exists in the tables, if it does,
-	//we go to the next word without saving the current
+        //we go to the next word without saving the current
         if(this->intoTables(fingPrint) >= 0)
             continue;
 
         //We save the final word
         for(j=0; j < FING_NBR_BITS; j++)
         	m_tables[m_tablesLength].set(j,fingPrint[j]);
-	for(j=0;j<PASS_NBR_BITS;j++)
-		m_dictionary[m_tablesLength].set(j,pass[j]);
+        for(j=0;j<PASS_NBR_BITS;j++)
+            m_dictionary[m_tablesLength].set(j,pass[j]);
         m_tablesLength++;
     }
 
     //Done :D!
 }
 
-bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number, 
+bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number,
 		bitset<FING_NBR_BITS> fingerprint)
 {
     int i;
-    //This is wrong, to reduction function reduces the fingerprint
-    //to a word the same length as the password, 12 bits.
-    bitset<FING_NBR_BITS> word;
+    bitset<PASS_NBR_BITS> word;
 
     if(number == 0)
     {
-        for(i=0; i < FING_NBR_BITS ; i++)
+        for(i=0; i < PASS_NBR_BITS ; i++)
             word.set(i, fingerprint[i]);
     }
     else if(number == 1)
     {
-        for(i=0; i < FING_NBR_BITS ; i++)
+        for(i=0; i < PASS_NBR_BITS ; i++)
             word.set(i, fingerprint[(FING_NBR_BITS-i)]);
     }
     else if(number == 2)
     {
-        for(i=0; i < FING_NBR_BITS ; i +=2)
+        for(i=0; i < PASS_NBR_BITS ; i +=2)
         {
             word.set(i, fingerprint[(i+1)]);
             word.set(i+1, fingerprint[i]);
@@ -89,30 +87,22 @@ bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number,
     }
     else if(number == 3)
     {
-        for(i=0; i < FING_NBR_BITS ; i++)
+        for(i=0; i < PASS_NBR_BITS ; i++)
             word.set(i, fingerprint[(FING_NBR_BITS-i)]);
-        for(i=0; i < FING_NBR_BITS ; i +=2)
+        for(i=0; i < PASS_NBR_BITS ; i +=2)
         {
             word.set(i, word[(i+1)]);
             word.set(i+1, word[i]);
         }
     }
 
-    return 0;//TO CHANGE, don't have the time right now.
+    return word;
 }
 
 void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
 {
-
-    //ATTENTION : Méthode seulement valable pour les 2 étapes sur les 
-    //3 principales! C'est-à-dire fonctionne
-    //si Fs trouvé dans la table, ainsi que si c'est F', F'', F''' et 
-    //F'''' mais ça ne fonctionne pas pour aller
-    //plus loin que ça avec l'histoire de la queue car je ne vois pas 
-    //comment retrouver le pass dans ce cas-là, même avec l'idée de Brian...
-
     int id=-1, i, j;
-    bitset<PASS_NBR_BITS> pass;// (and not <PASS_NBR_BITS> !) => Why not ? It has to have to same length as a password, not a hash.
+    bitset<PASS_NBR_BITS> pass;
     bitset<FING_NBR_BITS> originalFingerprint;
     originalFingerprint = fingerprint;
 
@@ -129,18 +119,17 @@ void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
         else
         {//We try to have the password corresponding to the current step
 
-            //We take the password corresponding to the actual fingerprint 
-	    //(but it's not the true password because there were 4 reductions 
-	    //and 5 hashes), whatever the value of i
+            //We take the password corresponding to the actual fingerprint
+            //(but it's not the true password because there were 4 reductions
+            //and 5 hashes), whatever the value of i
             for(j=0; j < PASS_NBR_BITS; j++)
                 pass.set(j,m_tables[id][j]);
 
-            //We make the intermediate steps to find the true password 
-	    //(if i=3 the for() is useless, it's normal according to what 
-	    //I understood.)
+            //We make the intermediate steps to find the true password
+            //(if i=3 the for() is useless)
 
-		//I add this temp, but we have to find a workaround
-		bitset<FING_NBR_BITS> tempFing;
+            //I add this temp, but we have to find a workaround
+            bitset<FING_NBR_BITS> tempFing;
             for(j=0; j < 3-i; j++)
             {
                 tempFing = this->hashDES(pass);
@@ -186,18 +175,15 @@ int RainbowAttack::intoTables(bitset<FING_NBR_BITS> fingerprint)
     int id=-1;
 
     //We check every fingerprint
-    for(i=0; i < m_tablesLength; i++)
+    for(i=0; i < m_tablesLength && id < 0; i++)
     {
         //We check every bit
         ok=true;
-        for(j=0; j < PASS_NBR_BITS; j++)
+        for(j=0; j < FING_NBR_BITS; j++)
             if(m_tables[i][j] != fingerprint[j])
                 ok=false;
         if(ok == true)
-        {
             id = i;
-            break;//Mauvaise pratique
-        }
     }
 
     return id;
@@ -205,6 +191,7 @@ int RainbowAttack::intoTables(bitset<FING_NBR_BITS> fingerprint)
 
 bitset<FING_NBR_BITS> RainbowAttack::hashDES(bitset<PASS_NBR_BITS> reducedPass)
 {
+
 	//Beware, the message encoded with DES is constant!
 	//The only thing that changes from one iteration to the other
 	//is the key, which is extended to 64 bits.
@@ -222,14 +209,14 @@ bitset<FING_NBR_BITS> RainbowAttack::hashDES(bitset<PASS_NBR_BITS> reducedPass)
 	temp = (reducedPass >> 7).to_ulong();//On garde bits 12 à 8
 	temp.set(7,0);//bit de parité, on s'en fout, en soit.
 	key[6] = temp.to_ulong();
-	
-	
+
+
 	byte cipher[CryptoPP::DES::BLOCKSIZE];
-	
+
 	CryptoPP::ECB_Mode<CryptoPP::DES>::Encryption e;
 	e.SetKey(key,sizeof(key));
 	e.ProcessData(cipher,message,sizeof(message));
-	
+
 	//Not very nice way to do it.
 	bitset<8> temp1 = cipher[CryptoPP::DES::BLOCKSIZE-2];
 	bitset<8> temp2 = cipher[CryptoPP::DES::BLOCKSIZE-1];
