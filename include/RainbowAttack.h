@@ -30,15 +30,15 @@ class RainbowAttack
         bitset<PASS_NBR_BITS> green(bitset<FING_NBR_BITS> fingerprint);
         bitset<PASS_NBR_BITS> yellow(bitset<FING_NBR_BITS> fingerprint);
         bitset<PASS_NBR_BITS> red(bitset<FING_NBR_BITS> fingerprint);
-     	bitset<PASS_NBR_BITS> reductionFunction(int number,
-		bitset<FING_NBR_BITS> fingerprint);
-  
+     	bitset<PASS_NBR_BITS> reductionFunction(int number, bitset<FING_NBR_BITS> fingerprint);
+
         bitset<FING_NBR_BITS> hashDES(bitset<PASS_NBR_BITS> reducedPass);
         ~RainbowAttack();
     protected:
     private:
         void tablesCreation();
         int intoTables(bitset<FING_NBR_BITS> fingerprint);
+        void insertionSort();
 
         bitset<PASS_NBR_BITS> m_dictionary[4096];
         bitset<FING_NBR_BITS> m_tables[4096];

@@ -51,12 +51,17 @@ void RainbowAttack::tablesCreation()
         	m_tables[m_tablesLength].set(j,fingPrint[j]);
         for(j=0;j<PASS_NBR_BITS;j++)
             m_dictionary[m_tablesLength].set(j,pass[j]);
+
+        //We have to sort every time here... To improve?
+        insertionSort();
+
         m_tablesLength++;
     }
 
     cout << "Table Length: " << m_tablesLength << endl;
-    //Done :D!
 }
+
+
 
 
 bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number,
@@ -174,29 +179,46 @@ void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
     }
 }
 
-int RainbowAttack::intoTables(bitset<FING_NBR_BITS> fingerprint)
-{
+void RainbowAttack::insertionSort()
+{//sort the rainbow table according to the fingerprint.
     int i, j;
-    bool ok=false;
-    int id=-1;
+    bitset<PASS_NBR_BITS> tempDic;
+    bitset<FING_NBR_BITS> temp;
 
-    //We check every fingerprint
-    for(i=0; i < m_tablesLength && id < 0; i++)
+    for(i=1; i < m_tablesLength; i++)
     {
-        //We check every bit
-		//Highly unefficient way to check.
-		//We should sort the table first, then either
-		//do a dichotomic search or some sort of dictionary
-		//search. Not check every bit of every word.
-        ok=true;
-        for(j=0; j < FING_NBR_BITS; j++)
-            if(m_tables[i][j] != fingerprint[j])
-                ok=false;
-        if(ok == true)
-            id = i;
+        temp = m_tables[i];
+        tempDic = m_dictionary[i];
+        for(j = i-1; j>= 0 && m_tables[j].to_ulong() > temp.to_ulong(); j--)
+        {
+             m_tables[j+1] = m_tables[j];
+             m_dictionary[j+1] = m_dictionary[j];
+        }
+
+        m_tables[j+1] = temp;
+        m_dictionary[j+1] = tempDic;
     }
 
-    return id;
+}
+
+int RainbowAttack::intoTables(bitset<FING_NBR_BITS> toFind)
+{//Dichotomic search which says if we find the fingerprint (toFind variable) into m_tables and its position
+    int low=0, high=m_tablesLength-1, middle;
+
+    do
+    {
+        middle=(low+high)/2;
+        if(m_tables[middle].to_ulong() < toFind.to_ulong())
+            low = middle+1;
+        else
+            high = middle-1;
+    }
+    while(toFind.to_ulong() != m_tables[middle].to_ulong() && low <= high);
+
+    if(toFind.to_ulong() == m_tables[middle].to_ulong())
+        return middle;
+    else
+        return -1;
 }
 
 bitset<FING_NBR_BITS> RainbowAttack::hashDES(bitset<PASS_NBR_BITS> reducedPass)

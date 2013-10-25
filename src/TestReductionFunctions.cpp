@@ -26,7 +26,6 @@ void TestReductionFunctions::comparisonReductionFunctions()
 //be based on a getTableLength.
 int TestReductionFunctions::numberOfCollisions(RainbowAttack* Rainbow, int reductionFunction)
 {
-    //Important note : there are some copy and paste between this method and the one frome RainbowAttack but that's not important
     int i, j, limit, tablesLength=0;
     limit = pow(2, PASS_NBR_BITS);
     bitset<PASS_NBR_BITS> pass;
