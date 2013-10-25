@@ -14,7 +14,7 @@ void TestReductionFunctions::comparisonReductionFunctions()
     //There is no many reduction functions that we have to test, so we don't need to automatically find the 4 best reduction functions, we decide to just print them and let the programmer find the 4 reduction functions that lead to the lowest number of collisions.
     for(i=0; i < numberOfReductionFunctions; i++)
     {
-        result = this->numberOfCollisions(Rainbow, i);
+        result = numberOfCollisions(Rainbow, i);
         cout << "Reduction function " << i << " gives " << result << " collision(s)." << endl;
     }
 
@@ -22,6 +22,8 @@ void TestReductionFunctions::comparisonReductionFunctions()
 }
 
 //Create the rainbow table with only reduction function and return the number of collisions with de 2^12 passwords
+//The methods used in this method should be private. The return statement should
+//be based on a getTableLength.
 int TestReductionFunctions::numberOfCollisions(RainbowAttack* Rainbow, int reductionFunction)
 {
     //Important note : there are some copy and paste between this method and the one frome RainbowAttack but that's not important
@@ -46,7 +48,7 @@ int TestReductionFunctions::numberOfCollisions(RainbowAttack* Rainbow, int reduc
         //We don't have to hash one more time, it's useless for this test
         //We watch if the password already exists in the tables, if it does,
         //we go to the next word without saving the current
-        if(this->intoTables(word, tablesLength, tables) >= 0)
+        if(intoTables(word, tablesLength, tables) >= 0)
             continue;
 
         //We save the final word

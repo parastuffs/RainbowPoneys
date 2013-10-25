@@ -6,12 +6,11 @@ class TestReductionFunctions
 {
     public:
         TestReductionFunctions();
-        void comparisonReductionFunctions();
-        virtual ~TestReductionFunctions();
-    protected:
-        int numberOfCollisions(RainbowAttack* Rainbow, int reductionFunction);
-        int intoTables(bitset<PASS_NBR_BITS> word, int tablesLength, bitset<PASS_NBR_BITS> tables[]);
+        static void comparisonReductionFunctions();
+        ~TestReductionFunctions();
     private:
+        static int numberOfCollisions(RainbowAttack* Rainbow, int reductionFunction);
+        static int intoTables(bitset<PASS_NBR_BITS> word, int tablesLength, bitset<PASS_NBR_BITS> tables[]);
 };
 
 #endif // TESTREDUCTIONFUNCTIONS_H

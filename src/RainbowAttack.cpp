@@ -32,11 +32,6 @@ void RainbowAttack::tablesCreation()
         //We apply 4 reduction functions
         for(j=0; j < 4; j++)
         {
-            //We hash the actual word and receive the first HASH_NBR_BITS bits
-	    //(!! HASH_NBR_BITS >= FING_NBR_BITS)
-	    //Question: do we recieve to LSB or MSB?
-	    //There is another problem: we should give DES the plain text,
-	    //that is a 12 bits word.
             fingPrint = this->hashDES(word);
 
             //We apply the reduction function
@@ -59,6 +54,7 @@ void RainbowAttack::tablesCreation()
         m_tablesLength++;
     }
 
+    cout << "Table Length: " << m_tablesLength << endl;
     //Done :D!
 }
 
@@ -66,39 +62,20 @@ void RainbowAttack::tablesCreation()
 bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number,
 		bitset<FING_NBR_BITS> fingerprint)
 {
-    int i;
-    bitset<PASS_NBR_BITS> word;
-
-    if(number == 0)
-    {
-        for(i=0; i < PASS_NBR_BITS ; i++)
-            word.set(i, fingerprint[i]);
+    if(number == 0) {
+		return blue(fingerprint);
     }
-    else if(number == 1)
-    {
-        for(i=0; i < PASS_NBR_BITS ; i++)
-            word.set(i, fingerprint[(FING_NBR_BITS-i)]);
+    else if(number == 1) {
+        return green(fingerprint);
     }
-    else if(number == 2)
-    {
-        for(i=0; i < PASS_NBR_BITS ; i +=2)
-        {
-            word.set(i, fingerprint[(i+1)]);
-            word.set(i+1, fingerprint[i]);
-        }
+    else if(number == 2) {
+		return yellow(fingerprint);
     }
-    else if(number == 3)
-    {
-        for(i=0; i < PASS_NBR_BITS ; i++)
-            word.set(i, fingerprint[(FING_NBR_BITS-i)]);
-        for(i=0; i < PASS_NBR_BITS ; i +=2)
-        {
-            word.set(i, word[(i+1)]);
-            word.set(i+1, word[i]);
-        }
+    else if(number == 3) {
+		return red(fingerprint);
     }
-
-    return word;
+	else
+		return 0;
 }
 
 bitset<PASS_NBR_BITS> RainbowAttack::blue(bitset<FING_NBR_BITS> fingerprint)
@@ -207,6 +184,10 @@ int RainbowAttack::intoTables(bitset<FING_NBR_BITS> fingerprint)
     for(i=0; i < m_tablesLength && id < 0; i++)
     {
         //We check every bit
+		//Highly unefficient way to check.
+		//We should sort the table first, then either
+		//do a dichotomic search or some sort of dictionary
+		//search. Not check every bit of every word.
         ok=true;
         for(j=0; j < FING_NBR_BITS; j++)
             if(m_tables[i][j] != fingerprint[j])

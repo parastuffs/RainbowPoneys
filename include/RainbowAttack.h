@@ -34,7 +34,7 @@ class RainbowAttack
 		bitset<FING_NBR_BITS> fingerprint);
   
         bitset<FING_NBR_BITS> hashDES(bitset<PASS_NBR_BITS> reducedPass);
-        virtual ~RainbowAttack();
+        ~RainbowAttack();
     protected:
     private:
         void tablesCreation();
