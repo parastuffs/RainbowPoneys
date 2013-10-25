@@ -1,4 +1,5 @@
 #include "../include/RainbowAttack.h"
+#include "../include/bitsetFunctions.h"
 
 //Useful : http://www.cplusplus.com/reference/bitset/bitset/
 
@@ -61,6 +62,7 @@ void RainbowAttack::tablesCreation()
     //Done :D!
 }
 
+
 bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number,
 		bitset<FING_NBR_BITS> fingerprint)
 {
@@ -97,6 +99,33 @@ bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number,
     }
 
     return word;
+}
+
+bitset<PASS_NBR_BITS> RainbowAttack::blue(bitset<FING_NBR_BITS> fingerprint)
+{
+	fingerprint=mirror(fingerprint);
+	return hopOne(fingerprint);
+}
+
+bitset<PASS_NBR_BITS> RainbowAttack::green(bitset<FING_NBR_BITS> fingerprint)
+{
+	fingerprint=flipAll(fingerprint);
+	return keepRight(fingerprint);
+}
+
+bitset<PASS_NBR_BITS> RainbowAttack::yellow(bitset<FING_NBR_BITS> fingerprint)
+{
+	fingerprint=mirror(fingerprint);
+	fingerprint=rotate(fingerprint,18);
+	fingerprint=flipAll(fingerprint);
+	return hopTwo(fingerprint);
+}
+
+bitset<PASS_NBR_BITS> RainbowAttack::red(bitset<FING_NBR_BITS> fingerprint)
+{
+	fingerprint=rotate(fingerprint, 7);
+	fingerprint=mirror(fingerprint);
+	return sumTwo(fingerprint);
 }
 
 void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)

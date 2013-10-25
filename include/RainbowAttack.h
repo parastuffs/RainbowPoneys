@@ -26,8 +26,13 @@ class RainbowAttack
     public:
         RainbowAttack();
         void findPassword(bitset<FING_NBR_BITS> fingerprint);
-        bitset<PASS_NBR_BITS> reductionFunction(int number,
-                bitset<FING_NBR_BITS> fingerprint);
+        bitset<PASS_NBR_BITS> blue(bitset<FING_NBR_BITS> fingerprint);
+        bitset<PASS_NBR_BITS> green(bitset<FING_NBR_BITS> fingerprint);
+        bitset<PASS_NBR_BITS> yellow(bitset<FING_NBR_BITS> fingerprint);
+        bitset<PASS_NBR_BITS> red(bitset<FING_NBR_BITS> fingerprint);
+     	bitset<PASS_NBR_BITS> reductionFunction(int number,
+		bitset<FING_NBR_BITS> fingerprint);
+  
         bitset<FING_NBR_BITS> hashDES(bitset<PASS_NBR_BITS> reducedPass);
         virtual ~RainbowAttack();
     protected:
