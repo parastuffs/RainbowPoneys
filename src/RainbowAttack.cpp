@@ -9,16 +9,12 @@ RainbowAttack::RainbowAttack()
 	this->tablesCreation();
 }
 
-RainbowAttack::~RainbowAttack()
-{
-	//dtor
-}
+RainbowAttack::~RainbowAttack() {}
 
 void RainbowAttack::tablesCreation()
 {
     //We list all the existing words
     int i, j, limit;
-    int curr_line=0;
     limit = pow(2, PASS_SIZE);
     Password pass, tmpPass;
     Fingerprint fingPrint;
@@ -41,14 +37,10 @@ void RainbowAttack::tablesCreation()
         fingPrint = this->hashDES(tmpPass);
 
         //We save the password and the fingerprint directly
-        m_dictionary[curr_line] = pass;
-        m_tables[curr_line] = fingPrint;
+        m_dictionary[m_tablesLength] = pass;
+        m_tables[m_tablesLength] = fingPrint;
 
-        cout<<"Pass="<<m_dictionary[curr_line];
-		cout<<" -> Fingerprint="<<m_tables[curr_line]<<endl;
-
-		curr_line++;
-		m_tablesLength = curr_line;
+		m_tablesLength++;
     }
 
     //We sort the table
@@ -56,32 +48,22 @@ void RainbowAttack::tablesCreation()
 
     //We delete the duplicate fingerprints
     j=0;
-    for(i=0; i < m_tablesLength; i++)
-    {
-        if(i >= 1)
-        {
-            if(previousFingPrint.to_ulong() != m_tables[i].to_ulong())
-            {
-                m_tables[j] = m_tables[i];
-                m_dictionary[j] = m_dictionary[i];
-                j++;
-            }
-        }
+    for(i=1; i < m_tablesLength; i++) {
+		if(previousFingPrint.to_ulong() != m_tables[i].to_ulong()) {
+			m_tables[j] = m_tables[i];
+			m_dictionary[j] = m_dictionary[i];
+			j++;
+		}
         previousFingPrint = m_tables[i];
-    }
-
-    //We "delete" the useless information into m_tables and m_dictionary (although this is not essential)
-    for(i=j ; i < m_tablesLength; i++)
-    {
-        m_tables[i] = 0;
-        m_dictionary[i] = 0;
     }
 
     m_tablesLength = j;
 
-    //We sort the table again
-    insertionSort();
-
+/*	for(int i=0;i<m_tablesLength;i++) {
+        cout<<"Pass="<<m_dictionary[i];
+		cout<<" -> Fingerprint="<<m_tables[i]<<endl;
+	}
+*/
     cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
 
