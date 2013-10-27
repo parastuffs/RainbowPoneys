@@ -44,8 +44,8 @@ void RainbowAttack::tablesCreation()
         m_dictionary[curr_line] = pass;
         m_tables[curr_line] = fingPrint;
 
-        cout<<"Pass="<<m_dictionary[curr_line];
-		cout<<" -> Fingerprint="<<m_tables[curr_line]<<endl;
+        //cout<<"Pass="<<m_dictionary[curr_line];
+		//cout<<" -> Fingerprint="<<m_tables[curr_line]<<endl;
 
 		curr_line++;
 		m_tablesLength = curr_line;
@@ -54,33 +54,30 @@ void RainbowAttack::tablesCreation()
     //We sort the table
     insertionSort();
 
-    //We delete the duplicate fingerprints
+    //Delete the duplicate fingerprints
     j=0;
-    for(i=0; i < m_tablesLength; i++)
+	previousFingPrint = m_tables[j];
+    for(i=1; i < m_tablesLength; i++)
     {
-        if(i >= 1)
-        {
-            if(previousFingPrint.to_ulong() != m_tables[i].to_ulong())
-            {
-                m_tables[j] = m_tables[i];
-                m_dictionary[j] = m_dictionary[i];
-                j++;
-            }
-        }
-        previousFingPrint = m_tables[i];
+        //if the current fingerprint is not a duplicate
+		if(m_tables[i].to_ulong() != previousFingPrint.to_ulong())
+		{
+			//add it to the table
+			j++; 
+			m_dictionary[j] = m_dictionary[i];
+			m_tables[j] = m_tables[i];
+			previousFingPrint = m_tables[j];
+		}
     }
 
-    //We "delete" the useless information into m_tables and m_dictionary (although this is not essential)
-    for(i=j ; i < m_tablesLength; i++)
+    //We "delete" the useless information in m_tables and m_dictionary (although this is not essential)
+    for(i=j+1 ; i < m_tablesLength; i++)
     {
         m_tables[i] = 0;
         m_dictionary[i] = 0;
     }
-
-    m_tablesLength = j;
-
-    //We sort the table again
-    insertionSort();
+    //update the length of the table
+    m_tablesLength = j+1; //because j=the last line with a fingerprint
 
     cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
