@@ -45,6 +45,9 @@ void RainbowAttack::tablesCreation()
 
 	//We sort the table
 	insertionSort();
+	/*for(int i=0;i<m_tablesLength;i++) {
+		cout << "FP possible: " << hashDES(m_dictionary[i]) << endl;
+	}*/
 
 	//Delete the duplicate fingerprints
 	previousFingPrint=m_tables[0];
@@ -155,7 +158,7 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
 
         if(id >= 0)
         {//We try to have the password corresponding to the current step
-			found = true;
+			//found = true;
 			cout << "The fellowing FP has been found in the table: " << fingerprint << endl;
 
             //We take the password corresponding to the actual fingerprint
@@ -191,9 +194,12 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
 					cout << "BINGO" << endl;
 				}
 			}
+			if(originalFingerprint == tempFing) {
+				found = true;
+			}
 				
         }
-		else
+		if(!found)
         {//fingerprint not found
 			cout << "Didn't find the FP, reducing/hashing from " << i << " to 3" << endl;
 			/*
