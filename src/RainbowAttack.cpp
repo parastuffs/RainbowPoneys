@@ -22,14 +22,15 @@ void RainbowAttack::tablesCreation()
     limit = pow(2, PASS_SIZE);
     Password pass, tmpPass;
     Fingerprint fingPrint;
- 
- 	cout<<"Rainbow table : \n"<<endl;   
+    Fingerprint previousFingPrint;
+
+ 	cout<<"Rainbow table : \n"<<endl;
     for(i=0; i < limit ; i++) //limit = 4096
     {
         // Conversion from int to bitset
         pass=i;
         tmpPass = pass;
-       
+
         // We apply 4 successive hashes/reductions
         for(j=0; j < 4; j++)
         {
@@ -39,28 +40,48 @@ void RainbowAttack::tablesCreation()
         // We have to hash one last time
         fingPrint = this->hashDES(tmpPass);
 
-        // If the hashed word is not in the table
-        // save the pass and fingerprint
-        if(this->inTable(fingPrint) == -1)
-		{
-			m_dictionary[curr_line] = pass;
-		    m_tables[curr_line] = fingPrint;
-			
-			cout<<"Pass="<<m_dictionary[curr_line];
-			cout<<" -> Fingerprint="<<m_tables[curr_line]<<endl;
-			
-			curr_line++;
-			m_tablesLength = curr_line;
-			
-		    //We have to sort every time here... To improve?
-		    insertionSort();
-       }
-//       else if(curr_line<10)
-//       		cout<<"conflict:"<<fingPrint<<endl;
-//		//taille finale de la table tres petite car beaucoup de collisions
-//		//c'est "bien"? ou "mal" car beaucoup de collisions après les 4 reductions?
-//    	else;
+        //We save the password and the fingerprint directly
+        m_dictionary[curr_line] = pass;
+        m_tables[curr_line] = fingPrint;
+
+        cout<<"Pass="<<m_dictionary[curr_line];
+		cout<<" -> Fingerprint="<<m_tables[curr_line]<<endl;
+
+		curr_line++;
+		m_tablesLength = curr_line;
     }
+
+    //We sort the table
+    insertionSort();
+
+    //We delete the duplicate fingerprints
+    j=0;
+    for(i=0; i < m_tablesLength; i++)
+    {
+        if(i >= 1)
+        {
+            if(previousFingPrint.to_ulong() != m_tables[i].to_ulong())
+            {
+                m_tables[j] = m_tables[i];
+                m_dictionary[j] = m_dictionary[i];
+                j++;
+            }
+        }
+        previousFingPrint = m_tables[i];
+    }
+
+    //We "delete" the useless information into m_tables and m_dictionary (although this is not essential)
+    for(i=j ; i < m_tablesLength; i++)
+    {
+        m_tables[i] = 0;
+        m_dictionary[i] = 0;
+    }
+
+    m_tablesLength = j;
+
+    //We sort the table again
+    insertionSort();
+
     cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
 
@@ -257,11 +278,11 @@ Fingerprint RainbowAttack::hashDES(Password reducedPass)
 	bitset<8> temp1 = cipher[CryptoPP::DES::BLOCKSIZE-2];
 	bitset<8> temp2 = cipher[CryptoPP::DES::BLOCKSIZE-1];
 	bitset<8> temp3 = cipher[CryptoPP::DES::BLOCKSIZE];
-	
+
 	Fingerprint fingerprint(string(temp1.to_string()+temp2.to_string()
 												+temp3.to_string()));
 
 	//cout << "fingerprint: '" << fingerprint << "'" << endl;
-	
+
 	return fingerprint;
 }
