@@ -9,16 +9,12 @@ RainbowAttack::RainbowAttack()
 	this->tablesCreation();
 }
 
-RainbowAttack::~RainbowAttack()
-{
-	//dtor
-}
+RainbowAttack::~RainbowAttack() {}
 
 void RainbowAttack::tablesCreation()
 {
     //We list all the existing words
     int i, j, limit;
-    int curr_line=0;
     limit = pow(2, PASS_SIZE);
     Password pass, tmpPass;
     Fingerprint fingPrint;
@@ -41,44 +37,34 @@ void RainbowAttack::tablesCreation()
         fingPrint = this->hashDES(tmpPass);
 
         //We save the password and the fingerprint directly
-        m_dictionary[curr_line] = pass;
-        m_tables[curr_line] = fingPrint;
+        m_dictionary[m_tablesLength] = pass;
+        m_tables[m_tablesLength] = fingPrint;
 
-        //cout<<"Pass="<<m_dictionary[curr_line];
-		//cout<<" -> Fingerprint="<<m_tables[curr_line]<<endl;
-
-		curr_line++;
-		m_tablesLength = curr_line;
+		m_tablesLength++;
     }
 
     //We sort the table
     insertionSort();
 
     //Delete the duplicate fingerprints
-    j=0;
-	previousFingPrint = m_tables[j];
-    for(i=1; i < m_tablesLength; i++)
-    {
-        //if the current fingerprint is not a duplicate
-		if(m_tables[i].to_ulong() != previousFingPrint.to_ulong())
-		{
-			//add it to the table
-			j++; 
-			m_dictionary[j] = m_dictionary[i];
+	previousFingPrint=m_tables[0];
+	j=1;
+    for(i=1; i < m_tablesLength; i++) {
+		if(previousFingPrint.to_ulong() != m_tables[i].to_ulong()) {
 			m_tables[j] = m_tables[i];
-			previousFingPrint = m_tables[j];
+			m_dictionary[j] = m_dictionary[i];
+			j++;	
 		}
+        previousFingPrint = m_tables[i];
     }
 
-    //We "delete" the useless information in m_tables and m_dictionary (although this is not essential)
-    for(i=j+1 ; i < m_tablesLength; i++)
-    {
-        m_tables[i] = 0;
-        m_dictionary[i] = 0;
-    }
-    //update the length of the table
-    m_tablesLength = j+1; //because j=the last line with a fingerprint
+    m_tablesLength = j;
 
+/*	for(int i=0;i<m_tablesLength;i++) {
+        cout<<"Pass="<<m_dictionary[i];
+		cout<<" -> Fingerprint="<<m_tables[i]<<endl;
+	}
+*/
     cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
 
@@ -155,15 +141,16 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
             //We take the password corresponding to the actual fingerprint
             //(but it's not the true password because there were 4 reductions
             //and 5 hashes), whatever the value of i
-            for(j=0; j < PASS_SIZE; j++)
-                pass.set(j,m_tables[id][j]);
+			pass = m_dictionary[id].to_ulong();
+			cout << "We may have found in the dico: " << pass << endl;
+			cout << "ID in the table: " << id << endl;
 
             //We make the intermediate steps to find the true password
             //(if i=3 the for() is useless)
 
             //I add this temp, but we have to find a workaround
             Fingerprint tempFing;
-            for(j=0; j < 3-i; j++)
+            for(j=0; j < 4-i; j++)
             {
                 tempFing = this->hashDES(pass);
                 pass = this->reductionFunction(j, tempFing);
@@ -175,25 +162,19 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
 
     if(id >= 0)
     {
-        cout << "Password found. It is: ";
-        for(i=0; i < PASS_SIZE; i++)
-            cout << pass[i];
-        cout << endl;
+        cout << "Password found. It is: " << pass << endl;
 
         //Vérification (pour déboguage de l'implémentation de l'algorithme)...
         fingerprint = this->hashDES(pass);
-        if(fingerprint != originalFingerprint)
-            cout << "Mouais il y a un probleme dans l implementation de l algorithme..." << endl;
+        if(fingerprint != originalFingerprint) {
+            cout << "Something is wrong" << endl;
+		}
         else
             cout << "Mot de passe vraiment trouve :D!";
 
         //Useful for the presentation
-        cout << "Original fingerprint:";
-        for(i=0; i < FING_SIZE; i++)
-            cout << originalFingerprint[i];
-        cout << endl << "Found fingerprint:";
-        for(i=0; i < FING_SIZE; i++)
-            cout << fingerprint[i];
+        cout << "Original fingerprint: " << originalFingerprint << endl;
+        cout << endl << "Found fingerprint: "<< fingerprint << endl;
     }
     else
     {

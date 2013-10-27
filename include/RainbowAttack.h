@@ -19,7 +19,7 @@ using namespace std;
 
 typedef bitset<12> Password;
 typedef bitset<24> Fingerprint;
-const byte MESSAGE[] = {0,0,0,0,0,0,0,0}; //64 bits
+const byte MESSAGE[] = {0x43,0x41,0x43,0x41,0x43,0x41,0x43,0x41}; //64 bits
 
 class RainbowAttack
 {
@@ -27,6 +27,7 @@ class RainbowAttack
 		RainbowAttack();
 		~RainbowAttack();
 		void findPassword(Fingerprint fingerprint);
+	private:
 		Fingerprint hashDES(Password reducedPass);
 		Password blue(Fingerprint fingerprint);
 		Password green(Fingerprint fingerprint);
@@ -34,7 +35,6 @@ class RainbowAttack
 		Password red(Fingerprint fingerprint);
 		Password reductionFunction(int number, Fingerprint fingerprint);
 		
-	private:
 		void tablesCreation();
 		int inTable(Fingerprint fingerprint);
 		void insertionSort();

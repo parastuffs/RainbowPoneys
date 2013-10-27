@@ -5,7 +5,7 @@ int main()
 {
 
 //	TestReductionFunctions::comparisonReductionFunctions();
-	Fingerprint fingerprint(string("000101010011100101001000"));
+	Fingerprint fingerprint(string("111111001111001000001011"));
 	RainbowAttack *Rainbow = new RainbowAttack();
 	Rainbow->findPassword(fingerprint);
 
