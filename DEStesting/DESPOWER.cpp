@@ -14,9 +14,25 @@ using namespace std;
 
 const int PASS_NBR_BITS = 12;
 
+typedef bitset<12> Password;
+typedef bitset<24> Fingerprint;
+const byte MESSAGE[] = {0x43,0x41,0x43,0x41,0x43,0x41,0x43,0x41};
+
+Fingerprint hashDES(Password reducedPass);
+
 int main(int argc, char* argv[])
 {
 
+	Password pass(string("011111101111"));
+	Fingerprint fingerprint = hashDES(pass);
+	cout << "pass: " << pass << endl;
+	cout << "hash (24 bits): " << fingerprint << endl;
+	Password passA(string("111111111111"));
+	fingerprint = hashDES(passA);
+	cout << "passA: " << passA << endl;
+	cout << "hash (24 bits): " << fingerprint << endl;
+
+/*
 	bitset<64> message(string("0100000101000010010000110100010001000101010001100100011101001000"));
 	cout << "Plain message: '" << message << "'" << endl;
 	bitset<8>test;
@@ -45,7 +61,7 @@ int main(int argc, char* argv[])
 		)
 	);
 	cout << out << endl;
-
+*/
 //	bitset<12> pass(string("101001100001"));
 //	int n = 64/8;
 //	byte key[] = {0,0,0,0,0,0,0,0};
@@ -197,4 +213,27 @@ int main(int argc, char* argv[])
 
 
 	return 0;
+}
+
+Fingerprint hashDES(Password reducedPass)
+{
+	byte key[8] = {0,0,0,0,0,0,0,0};
+	bitset<8> temp = (reducedPass << 1).to_ulong();//On garde bits 7 à 1
+	key[7] = temp.to_ulong();
+	temp = (reducedPass >> 7).to_ulong();//On garde bits 12 à 8
+	temp.set(7,0);//bit de parité, on s'en fout, en soit.
+	key[6] = temp.to_ulong();
+
+	byte cipher[CryptoPP::DES::BLOCKSIZE];
+	CryptoPP::ECB_Mode<CryptoPP::DES>::Encryption e;
+	e.SetKey(key,sizeof(key));
+	e.ProcessData(cipher,MESSAGE,sizeof(MESSAGE));
+
+	bitset<8> temp1 = cipher[CryptoPP::DES::BLOCKSIZE-2];
+	bitset<8> temp2 = cipher[CryptoPP::DES::BLOCKSIZE-1];
+	bitset<8> temp3 = cipher[CryptoPP::DES::BLOCKSIZE];
+
+	Fingerprint fingerprint(string(temp1.to_string()+temp2.to_string()+temp3.to_string()));
+
+	return fingerprint;
 }

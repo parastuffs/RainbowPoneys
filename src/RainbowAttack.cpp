@@ -59,13 +59,14 @@ void RainbowAttack::tablesCreation()
 	}
 
 	m_tablesLength = j;
-
-/*	for(int i=0;i<m_tablesLength;i++) {
+/*
+	for(int i=0;i<m_tablesLength;i++) {
 		cout<<"Pass="<<m_dictionary[i];
 		cout<<" -> Fingerprint="<<m_tables[i]<<endl;
 	}
-*/
+
 	cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
+	*/
 }
 
 Password RainbowAttack::reductionFunction(int number, 
@@ -138,65 +139,96 @@ Password RainbowAttack::red(Fingerprint fingerprint)
 
 void RainbowAttack::findPassword(Fingerprint fingerprint)
 {
-	int id=-1, i, j;
-	Password pass;
-	Fingerprint originalFingerprint;
-	originalFingerprint = fingerprint;
+    int id;
+    Password pass;
+    Fingerprint originalFingerprint;
+    originalFingerprint = fingerprint;
+	bool found=false;
+	cout << ">Entering the cracking method." << endl;
+	cout << "We want to find the password of the fingerprint: " << originalFingerprint << endl;
 
-	//Look if the fingerprint is into the tables, and give its corresponding ID
-	for(i=0 ; i < 4; i++)
-	{
-		id=this->inTable(fingerprint);
+    //Look if the fingerprint is into the tables, and give its corresponding ID
+    for(int i=0 ; i < 4 && !found; i++)
+    {
+        id=this->inTable(fingerprint);
+		cout << "Iteration i=" << i << endl;
 
-		if(id < 0)
-		{	//fingerprint not found
-			pass = this->reductionFunction(3-i, fingerprint);
-			fingerprint = this->hashDES(pass);
-		}
-		else
-		{	//We try to have the password corresponding to the current step
+        if(id >= 0)
+        {//We try to have the password corresponding to the current step
+			found = true;
+			cout << "The fellowing FP has been found in the table: " << fingerprint << endl;
 
-			//We take the password corresponding to the actual fingerprint
-			//(but it's not the true password because there were 4 reductions
-			//and 5 hashes), whatever the value of i
+            //We take the password corresponding to the actual fingerprint
+            //(but it's not the true password because there were 4 reductions
+            //and 5 hashes), whatever the value of i
 			pass = m_dictionary[id].to_ulong();
-			cout << "We may have found in the dico: " << pass << endl;
-			cout << "ID in the table: " << id << endl;
 
-			//We make the intermediate steps to find the true password
-			//(if i=3 the for() is useless)
 
-			//I add this temp, but we have to find a workaround
-			Fingerprint tempFing;
-			for(j=0; j < 4-i; j++)
-			{
+            //We make the intermediate steps to find the true password
+            //(if i=3 the for() is useless)
+
+            //I add this temp, but we have to find a workaround
+            Fingerprint tempFing;
+			/*
+			for(int k=-1; k < i-1;) {
+				k++;
+				for(int j=0; j < 4-i+k; j++)
+				{
+					cout << j << " ";
+					tempFing = this->hashDES(pass);
+					pass = this->reductionFunction(j, tempFing);
+				}
+				cout << endl;
+			}
+			*/
+			cout << "## In the loop" << endl;
+			for(int j=0; j < 4; j++) {
+				cout << "Coming from pass="<<pass << endl;
 				tempFing = this->hashDES(pass);
 				pass = this->reductionFunction(j, tempFing);
+				cout << "Ending with pass="<<pass<<" and FP="<<tempFing<<endl;
+				if(tempFing == originalFingerprint) {
+					cout << "BINGO" << endl;
+				}
 			}
-
-			break;//Mauvaise pratique
-		}
-	}
-
-	if(id >= 0)
-	{
-		cout << "Password found. It is: " << pass << endl;
-
-		//Vérification (pour déboguage de l'implémentation de l'algorithme)...
-		fingerprint = this->hashDES(pass);
-		if(fingerprint != originalFingerprint)
-			cout << "Something is wrong" << endl;
+				
+        }
 		else
-			cout << "Mot de passe vraiment trouve :D!";
+        {//fingerprint not found
+			cout << "Didn't find the FP, reducing/hashing from " << i << " to 3" << endl;
+			/*
+			for(int j=3-i; j < 4; j++) {
+            	pass = this->reductionFunction(j, fingerprint);
+            	fingerprint = this->hashDES(pass);
+			}
+			*/
+			for(int j=i; j < 4; j++) {
+            	pass = this->reductionFunction(j, fingerprint);
+            	fingerprint = this->hashDES(pass);
+			}
+        }
+    }
 
-		//Useful for the presentation
-		cout << "Original fingerprint: " << originalFingerprint << endl;
-		cout << endl << "Found fingerprint: "<< fingerprint << endl;
-	}
-	else
-	{
-		cout << "Nothing found...";
-	}
+    if(found)
+    {
+        cout << "Password found. It is: " << pass << endl;
+
+        //Vérification (pour déboguage de l'implémentation de l'algorithme)...
+        fingerprint = this->hashDES(pass);
+        if(fingerprint != originalFingerprint) {
+            cout << "Something is wrong" << endl;
+		}
+        else
+            cout << "Mot de passe vraiment trouve :D!";
+
+        //Useful for the presentation
+        cout << "Original fingerprint: " << originalFingerprint << endl;
+        cout << "Found fingerprint: "<< fingerprint << endl;
+    }
+    else
+    {
+        cout << "Nothing found...";
+    }
 }
 
 void RainbowAttack::insertionSort()
