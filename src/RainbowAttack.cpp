@@ -49,7 +49,7 @@ void RainbowAttack::tablesCreation()
 	//Delete the duplicate fingerprints
 	previousFingPrint=m_tables[0];
 	j=1;
-    for(i=1; i < m_tablesLength; i++) {
+	for(i=1; i < m_tablesLength; i++) {
 		if(previousFingPrint != m_tables[i]) {
 			m_tables[j] = m_tables[i];
 			m_dictionary[j] = m_dictionary[i];
@@ -131,12 +131,12 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
 		id=this->inTable(fingerprint);
 
 		if(id < 0)
-		{//fingerprint not found
+		{	//fingerprint not found
 			pass = this->reductionFunction(3-i, fingerprint);
 			fingerprint = this->hashDES(pass);
 		}
 		else
-		{//We try to have the password corresponding to the current step
+		{	//We try to have the password corresponding to the current step
 
 			//We take the password corresponding to the actual fingerprint
 			//(but it's not the true password because there were 4 reductions
@@ -204,25 +204,27 @@ void RainbowAttack::insertionSort()
 }
 
 int RainbowAttack::inTable(Fingerprint toFind)
-{//Dichotomic search which says if we find the fingerprint (toFind variable) in m_tables and its position
-    int low=0;
-    int middle;
-    int high=m_tablesLength-1;
+{
+	// Dichotomic search which says if we find the fingerprint 
+	// (toFind variable) in m_tables and its position
+	int low=0;
+	int middle;
+	int high=m_tablesLength-1;
 
-    do
-    {
-        middle=(low+high)/2;
-        if(m_tables[middle].to_ulong() < toFind.to_ulong())
-            low = middle+1;
-        else
-            high = middle-1;
-    }
-    while(toFind != m_tables[middle] && low <= high);
+	do
+	{
+		middle=(low+high)/2;
+		if(m_tables[middle].to_ulong() < toFind.to_ulong())
+			low = middle+1;
+		else
+			high = middle-1;
+	}
+	while(toFind != m_tables[middle] && low <= high);
 
-    if(toFind == m_tables[middle])
-        return middle;
-    else
-        return -1;
+	if(toFind == m_tables[middle])
+		return middle;
+	else
+		return -1;
 }
 
 Fingerprint RainbowAttack::hashDES(Password reducedPass)
