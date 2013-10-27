@@ -90,24 +90,38 @@ Password RainbowAttack::reductionFunction(int number,
 Password RainbowAttack::blue(Fingerprint fingerprint)
 {
 	// First reduction function
-	fingerprint=mirror(fingerprint);
-	return hopOne(fingerprint);
+	//fingerprint=mirror(fingerprint);
+	//fingerprint=rotate(fingerprint,2);
+	//return hopOne(fingerprint);
+	//return keepRight(fingerprint);
+	//return keepLeft(fingerprint);
+	//return hopTwo(fingerprint);
+	return sumTwo(fingerprint);
 }
 
 Password RainbowAttack::green(Fingerprint fingerprint)
 {
 	// Second reduction function
 	fingerprint=flipAll(fingerprint);
-	return keepRight(fingerprint);
+	//fingerprint=rotate(fingerprint,5);
+	//return hopOne(fingerprint);
+	//return keepRight(fingerprint);
+	//return keepLeft(fingerprint);
+	//return hopTwo(fingerprint);
+	return sumTwo(fingerprint);
 }
 
 Password RainbowAttack::yellow(Fingerprint fingerprint)
 {
 	// Third reduction function
 	fingerprint=mirror(fingerprint);
-	fingerprint=rotate(fingerprint,18);
-	fingerprint=flipAll(fingerprint);
-	return hopTwo(fingerprint);
+	//fingerprint=rotate(fingerprint,9);
+	//fingerprint=flipAll(fingerprint);
+	//return hopOne(fingerprint);
+	//return keepRight(fingerprint);
+	//return keepLeft(fingerprint);
+	//return hopTwo(fingerprint);
+	return sumTwo(fingerprint);
 }
 
 Password RainbowAttack::red(Fingerprint fingerprint)
@@ -115,6 +129,10 @@ Password RainbowAttack::red(Fingerprint fingerprint)
 	// Fourth reduction function
 	fingerprint=rotate(fingerprint, 7);
 	fingerprint=mirror(fingerprint);
+	//return hopOne(fingerprint);
+	//return keepRight(fingerprint);
+	//return keepLeft(fingerprint);
+	//return hopTwo(fingerprint);
 	return sumTwo(fingerprint);
 }
 
