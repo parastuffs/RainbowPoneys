@@ -49,11 +49,11 @@ void RainbowAttack::tablesCreation()
 	//Delete the duplicate fingerprints
 	previousFingPrint=m_tables[0];
 	j=1;
-	for(i=1; i < m_tablesLength; i++) {
-		if(previousFingPrint.to_ulong() != m_tables[i].to_ulong()) {
+    for(i=1; i < m_tablesLength; i++) {
+		if(previousFingPrint != m_tables[i]) {
 			m_tables[j] = m_tables[i];
 			m_dictionary[j] = m_dictionary[i];
-			j++;	
+			j++;
 		}
 		previousFingPrint = m_tables[i];
 	}
@@ -205,24 +205,24 @@ void RainbowAttack::insertionSort()
 
 int RainbowAttack::inTable(Fingerprint toFind)
 {//Dichotomic search which says if we find the fingerprint (toFind variable) in m_tables and its position
-	int low=0;
-	int middle;
-	int high=m_tablesLength-1;
+    int low=0;
+    int middle;
+    int high=m_tablesLength-1;
 
-	do
-	{
-		middle=(low+high)/2;
-		if(m_tables[middle].to_ulong() < toFind.to_ulong())
-			low = middle+1;
-		else
-			high = middle-1;
-	}
-	while(toFind.to_ulong() != m_tables[middle].to_ulong() && low <= high);
+    do
+    {
+        middle=(low+high)/2;
+        if(m_tables[middle].to_ulong() < toFind.to_ulong())
+            low = middle+1;
+        else
+            high = middle-1;
+    }
+    while(toFind != m_tables[middle] && low <= high);
 
-	if(toFind.to_ulong() == m_tables[middle].to_ulong())
-		return middle;
-	else
-		return -1;
+    if(toFind == m_tables[middle])
+        return middle;
+    else
+        return -1;
 }
 
 Fingerprint RainbowAttack::hashDES(Password reducedPass)
