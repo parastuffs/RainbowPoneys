@@ -13,72 +13,72 @@ RainbowAttack::~RainbowAttack() {}
 
 void RainbowAttack::tablesCreation()
 {
-    //We list all the existing words
-    int i, j, limit;
-    limit = pow(2, PASS_SIZE);
-    Password pass, tmpPass;
-    Fingerprint fingPrint;
-    Fingerprint previousFingPrint;
+	//We list all the existing words
+	int i, j, limit;
+	limit = pow(2, PASS_SIZE);
+	Password pass, tmpPass;
+	Fingerprint fingPrint;
+	Fingerprint previousFingPrint;
 
- 	cout<<"Rainbow table : \n"<<endl;
-    for(i=0; i < limit ; i++) //limit = 4096
-    {
-        // Conversion from int to bitset
-        pass=i;
-        tmpPass = pass;
+	cout<<"Rainbow table : \n"<<endl;
+	for(i=0; i < limit ; i++) //limit = 4096
+	{
+		// Conversion from int to bitset
+		pass=i;
+		tmpPass = pass;
 
-        // We apply 4 successive hashes/reductions
-        for(j=0; j < 4; j++)
-        {
-            fingPrint = this->hashDES(tmpPass);
-            tmpPass = this->reductionFunction(j, fingPrint);
-        }
-        // We have to hash one last time
-        fingPrint = this->hashDES(tmpPass);
+		// We apply 4 successive hashes/reductions
+		for(j=0; j < 4; j++)
+		{
+			fingPrint = this->hashDES(tmpPass);
+			tmpPass = this->reductionFunction(j, fingPrint);
+		}
+		// We have to hash one last time
+		fingPrint = this->hashDES(tmpPass);
 
-        //We save the password and the fingerprint directly
-        m_dictionary[m_tablesLength] = pass;
-        m_tables[m_tablesLength] = fingPrint;
+		//We save the password and the fingerprint directly
+		m_dictionary[m_tablesLength] = pass;
+		m_tables[m_tablesLength] = fingPrint;
 
 		m_tablesLength++;
-    }
+	}
 
-    //We sort the table
-    insertionSort();
+	//We sort the table
+	insertionSort();
 
-    //Delete the duplicate fingerprints
+	//Delete the duplicate fingerprints
 	previousFingPrint=m_tables[0];
 	j=1;
-    for(i=1; i < m_tablesLength; i++) {
+	for(i=1; i < m_tablesLength; i++) {
 		if(previousFingPrint.to_ulong() != m_tables[i].to_ulong()) {
 			m_tables[j] = m_tables[i];
 			m_dictionary[j] = m_dictionary[i];
 			j++;	
 		}
-        previousFingPrint = m_tables[i];
-    }
+		previousFingPrint = m_tables[i];
+	}
 
-    m_tablesLength = j;
+	m_tablesLength = j;
 
 /*	for(int i=0;i<m_tablesLength;i++) {
-        cout<<"Pass="<<m_dictionary[i];
+		cout<<"Pass="<<m_dictionary[i];
 		cout<<" -> Fingerprint="<<m_tables[i]<<endl;
 	}
 */
-    cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
+	cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
 
-Password RainbowAttack::reductionFunction(int number,
+Password RainbowAttack::reductionFunction(int number, 
 		Fingerprint fingerprint)
 {
 	// 4 different reduction "rainbow" functions
-    if(number == 0)
+	if(number == 0)
 		return blue(fingerprint);
-    else if(number == 1)
-        return green(fingerprint);
-    else if(number == 2)
+	else if(number == 1)
+		return green(fingerprint);
+	else if(number == 2)
 		return yellow(fingerprint);
-    else if(number == 3)
+	else if(number == 3)
 		return red(fingerprint);
 	else
 	{
@@ -120,110 +120,109 @@ Password RainbowAttack::red(Fingerprint fingerprint)
 
 void RainbowAttack::findPassword(Fingerprint fingerprint)
 {
-    int id=-1, i, j;
-    Password pass;
-    Fingerprint originalFingerprint;
-    originalFingerprint = fingerprint;
+	int id=-1, i, j;
+	Password pass;
+	Fingerprint originalFingerprint;
+	originalFingerprint = fingerprint;
 
-    //Look if the fingerprint is into the tables, and give its corresponding ID
-    for(i=0 ; i < 4; i++)
-    {
-        id=this->inTable(fingerprint);
+	//Look if the fingerprint is into the tables, and give its corresponding ID
+	for(i=0 ; i < 4; i++)
+	{
+		id=this->inTable(fingerprint);
 
-        if(id < 0)
-        {//fingerprint not found
-            pass = this->reductionFunction(3-i, fingerprint);
-            fingerprint = this->hashDES(pass);
-        }
-        else
-        {//We try to have the password corresponding to the current step
+		if(id < 0)
+		{//fingerprint not found
+			pass = this->reductionFunction(3-i, fingerprint);
+			fingerprint = this->hashDES(pass);
+		}
+		else
+		{//We try to have the password corresponding to the current step
 
-            //We take the password corresponding to the actual fingerprint
-            //(but it's not the true password because there were 4 reductions
-            //and 5 hashes), whatever the value of i
+			//We take the password corresponding to the actual fingerprint
+			//(but it's not the true password because there were 4 reductions
+			//and 5 hashes), whatever the value of i
 			pass = m_dictionary[id].to_ulong();
 			cout << "We may have found in the dico: " << pass << endl;
 			cout << "ID in the table: " << id << endl;
 
-            //We make the intermediate steps to find the true password
-            //(if i=3 the for() is useless)
+			//We make the intermediate steps to find the true password
+			//(if i=3 the for() is useless)
 
-            //I add this temp, but we have to find a workaround
-            Fingerprint tempFing;
-            for(j=0; j < 4-i; j++)
-            {
-                tempFing = this->hashDES(pass);
-                pass = this->reductionFunction(j, tempFing);
-            }
+			//I add this temp, but we have to find a workaround
+			Fingerprint tempFing;
+			for(j=0; j < 4-i; j++)
+			{
+				tempFing = this->hashDES(pass);
+				pass = this->reductionFunction(j, tempFing);
+			}
 
-            break;//Mauvaise pratique
-        }
-    }
-
-    if(id >= 0)
-    {
-        cout << "Password found. It is: " << pass << endl;
-
-        //Vérification (pour déboguage de l'implémentation de l'algorithme)...
-        fingerprint = this->hashDES(pass);
-        if(fingerprint != originalFingerprint) {
-            cout << "Something is wrong" << endl;
+			break;//Mauvaise pratique
 		}
-        else
-            cout << "Mot de passe vraiment trouve :D!";
+	}
 
-        //Useful for the presentation
-        cout << "Original fingerprint: " << originalFingerprint << endl;
-        cout << endl << "Found fingerprint: "<< fingerprint << endl;
-    }
-    else
-    {
-        cout << "Nothing found...";
-    }
+	if(id >= 0)
+	{
+		cout << "Password found. It is: " << pass << endl;
+
+		//Vérification (pour déboguage de l'implémentation de l'algorithme)...
+		fingerprint = this->hashDES(pass);
+		if(fingerprint != originalFingerprint)
+			cout << "Something is wrong" << endl;
+		else
+			cout << "Mot de passe vraiment trouve :D!";
+
+		//Useful for the presentation
+		cout << "Original fingerprint: " << originalFingerprint << endl;
+		cout << endl << "Found fingerprint: "<< fingerprint << endl;
+	}
+	else
+	{
+		cout << "Nothing found...";
+	}
 }
 
 void RainbowAttack::insertionSort()
 {	//sort the rainbow table according to the fingerprint.
-    int i, j;
-    Password tempDic;
-    Fingerprint temp;
+	int i, j;
+	Password tempDic;
+	Fingerprint temp;
 
-    for(i=1; i < m_tablesLength; i++)
-    {
-        temp = m_tables[i];
-        tempDic = m_dictionary[i];
-        for(j = i-1; j>= 0 && m_tables[j].to_ulong() > temp.to_ulong(); j--)
-        {
-             m_tables[j+1] = m_tables[j];
-             m_dictionary[j+1] = m_dictionary[j];
-        }
+	for(i=1; i < m_tablesLength; i++)
+	{
+		temp = m_tables[i];
+		tempDic = m_dictionary[i];
+		for(j = i-1; j>= 0 && m_tables[j].to_ulong() > temp.to_ulong(); j--)
+		{
+			m_tables[j+1] = m_tables[j];
+			m_dictionary[j+1] = m_dictionary[j];
+		}
 
-        m_tables[j+1] = temp;
-        m_dictionary[j+1] = tempDic;
-    }
+		m_tables[j+1] = temp;
+		m_dictionary[j+1] = tempDic;
+	}
 
 }
 
 int RainbowAttack::inTable(Fingerprint toFind)
 {//Dichotomic search which says if we find the fingerprint (toFind variable) in m_tables and its position
-    int low=0;
-    int middle;
-    int high=m_tablesLength-1;
+	int low=0;
+	int middle;
+	int high=m_tablesLength-1;
 
-    do
-    {
-        middle=(low+high)/2;
-        if(m_tables[middle].to_ulong() < toFind.to_ulong())
-            low = middle+1;
-        else
-            high = middle-1;
-    }
-    while(toFind.to_ulong() != m_tables[middle].to_ulong() && low <= high);
+	do
+	{
+		middle=(low+high)/2;
+		if(m_tables[middle].to_ulong() < toFind.to_ulong())
+			low = middle+1;
+		else
+			high = middle-1;
+	}
+	while(toFind.to_ulong() != m_tables[middle].to_ulong() && low <= high);
 
-    if(toFind.to_ulong() == m_tables[middle].to_ulong())
-        return middle;
-    else
-        return -1;
+	if(toFind.to_ulong() == m_tables[middle].to_ulong())
+		return middle;
+	else
+		return -1;
 }
 
 Fingerprint RainbowAttack::hashDES(Password reducedPass)
