@@ -63,20 +63,12 @@ int TestReductionFunctions::numberOfCollisions(RainbowAttack* Rainbow, int reduc
 int TestReductionFunctions::inTable(Password word, int tablesLength, Password tables[])
 {
     int i, j;
-    bool ok=false;
     int id=-1;
 
     //We check every word
     for(i=0; i < tablesLength && id >= 0; i++)
-    {
-        //We check every bit
-        ok=true;
-        for(j=0; j < PASS_SIZE; j++)
-            if(tables[i][j] != word[j])
-                ok=false;
-        if(ok == true)
+        if(tables[i] != word)
             id = i;
-    }
 
     return id;
 }

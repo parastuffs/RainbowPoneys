@@ -50,10 +50,10 @@ void RainbowAttack::tablesCreation()
 	previousFingPrint=m_tables[0];
 	j=1;
     for(i=1; i < m_tablesLength; i++) {
-		if(previousFingPrint.to_ulong() != m_tables[i].to_ulong()) {
+		if(previousFingPrint() != m_tables[i]) {
 			m_tables[j] = m_tables[i];
 			m_dictionary[j] = m_dictionary[i];
-			j++;	
+			j++;
 		}
         previousFingPrint = m_tables[i];
     }
@@ -218,9 +218,9 @@ int RainbowAttack::inTable(Fingerprint toFind)
         else
             high = middle-1;
     }
-    while(toFind.to_ulong() != m_tables[middle].to_ulong() && low <= high);
+    while(toFind != m_tables[middle] && low <= high);
 
-    if(toFind.to_ulong() == m_tables[middle].to_ulong())
+    if(toFind == m_tables[middle])
         return middle;
     else
         return -1;
