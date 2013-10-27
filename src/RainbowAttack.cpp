@@ -5,122 +5,126 @@
 
 RainbowAttack::RainbowAttack()
 {
-    m_tablesLength=0;
-    this->tablesCreation();
-
+	m_tablesLength=0;
+	this->tablesCreation();
 }
 
 RainbowAttack::~RainbowAttack()
 {
-    //dtor
+	//dtor
 }
 
 void RainbowAttack::tablesCreation()
 {
     //We list all the existing words
     int i, j, limit;
-    limit = pow(2, PASS_NBR_BITS);
-    bitset<PASS_NBR_BITS> pass;
-    bitset<PASS_NBR_BITS> word;
-    bitset<FING_NBR_BITS> fingPrint;
-
-    for(i=0; i < limit ; i++)
+    int curr_line=0;
+    limit = pow(2, PASS_SIZE);
+    Password pass, tmpPass;
+    Fingerprint fingPrint;
+ 
+ 	cout<<"Rainbow table : \n"<<endl;   
+    for(i=0; i < limit ; i++) //limit = 4096
     {
-        //we copy the word (automatic conversion from int to bitset)
-        word = pass = i;
-
-        //We apply 4 reduction functions
+        // Conversion from int to bitset
+        pass=i;
+        tmpPass = pass;
+       
+        // We apply 4 successive hashes/reductions
         for(j=0; j < 4; j++)
         {
-            fingPrint = this->hashDES(word);
-
-            //We apply the reduction function
-            word = this->reductionFunction(j, fingPrint);
+            fingPrint = this->hashDES(tmpPass);
+            tmpPass = this->reductionFunction(j, fingPrint);
         }
+        // We have to hash one last time
+        fingPrint = this->hashDES(tmpPass);
 
-        //We have to hash one more time
-        fingPrint = this->hashDES(word);
-
-        //We watch if the hashed word already exists in the tables, if it does,
-        //we go to the next word without saving the current
-        if(this->intoTables(fingPrint) >= 0)
-            continue;
-
-        //We save the final word
-        for(j=0; j < FING_NBR_BITS; j++)
-        	m_tables[m_tablesLength].set(j,fingPrint[j]);
-        for(j=0;j<PASS_NBR_BITS;j++)
-            m_dictionary[m_tablesLength].set(j,pass[j]);
-
-        //We have to sort every time here... To improve?
-        insertionSort();
-
-        m_tablesLength++;
+        // If the hashed word is not in the table
+        // save the pass and fingerprint
+        if(this->inTable(fingPrint) == -1)
+		{
+			m_dictionary[curr_line] = pass;
+		    m_tables[curr_line] = fingPrint;
+			
+			cout<<"Pass="<<m_dictionary[curr_line];
+			cout<<" -> Fingerprint="<<m_tables[curr_line]<<endl;
+			
+			curr_line++;
+			m_tablesLength = curr_line;
+			
+		    //We have to sort every time here... To improve?
+		    insertionSort();
+       }
+//       else if(curr_line<10)
+//       		cout<<"conflict:"<<fingPrint<<endl;
+//		//taille finale de la table tres petite car beaucoup de collisions
+//		//c'est "bien"? ou "mal" car beaucoup de collisions après les 4 reductions?
+//    	else;
     }
-
-    cout << "Table Length: " << m_tablesLength << endl;
+    cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
 
-
-
-
-bitset<PASS_NBR_BITS> RainbowAttack::reductionFunction(int number,
-		bitset<FING_NBR_BITS> fingerprint)
+Password RainbowAttack::reductionFunction(int number,
+		Fingerprint fingerprint)
 {
-    if(number == 0) {
+	// 4 different reduction "rainbow" functions
+    if(number == 0)
 		return blue(fingerprint);
-    }
-    else if(number == 1) {
+    else if(number == 1)
         return green(fingerprint);
-    }
-    else if(number == 2) {
+    else if(number == 2)
 		return yellow(fingerprint);
-    }
-    else if(number == 3) {
+    else if(number == 3)
 		return red(fingerprint);
-    }
 	else
+	{
+		cout<<"ERROR: in reductionFunction"<<endl;
 		return 0;
+	}
 }
 
-bitset<PASS_NBR_BITS> RainbowAttack::blue(bitset<FING_NBR_BITS> fingerprint)
+Password RainbowAttack::blue(Fingerprint fingerprint)
 {
+	// First reduction function
 	fingerprint=mirror(fingerprint);
 	return hopOne(fingerprint);
 }
 
-bitset<PASS_NBR_BITS> RainbowAttack::green(bitset<FING_NBR_BITS> fingerprint)
+Password RainbowAttack::green(Fingerprint fingerprint)
 {
+	// Second reduction function
 	fingerprint=flipAll(fingerprint);
 	return keepRight(fingerprint);
 }
 
-bitset<PASS_NBR_BITS> RainbowAttack::yellow(bitset<FING_NBR_BITS> fingerprint)
+Password RainbowAttack::yellow(Fingerprint fingerprint)
 {
+	// Third reduction function
 	fingerprint=mirror(fingerprint);
 	fingerprint=rotate(fingerprint,18);
 	fingerprint=flipAll(fingerprint);
 	return hopTwo(fingerprint);
 }
 
-bitset<PASS_NBR_BITS> RainbowAttack::red(bitset<FING_NBR_BITS> fingerprint)
+Password RainbowAttack::red(Fingerprint fingerprint)
 {
+	// Fourth reduction function
 	fingerprint=rotate(fingerprint, 7);
 	fingerprint=mirror(fingerprint);
 	return sumTwo(fingerprint);
 }
 
-void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
+void RainbowAttack::findPassword(Fingerprint fingerprint)
 {
     int id=-1, i, j;
-    bitset<PASS_NBR_BITS> pass;
-    bitset<FING_NBR_BITS> originalFingerprint;
+    Password pass;
+    Fingerprint originalFingerprint;
     originalFingerprint = fingerprint;
 
     //Look if the fingerprint is into the tables, and give its corresponding ID
     for(i=0 ; i < 4; i++)
     {
-        id=this->intoTables(fingerprint);
+        id=this->inTable(fingerprint);
 
         if(id < 0)
         {//fingerprint not found
@@ -133,14 +137,14 @@ void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
             //We take the password corresponding to the actual fingerprint
             //(but it's not the true password because there were 4 reductions
             //and 5 hashes), whatever the value of i
-            for(j=0; j < PASS_NBR_BITS; j++)
+            for(j=0; j < PASS_SIZE; j++)
                 pass.set(j,m_tables[id][j]);
 
             //We make the intermediate steps to find the true password
             //(if i=3 the for() is useless)
 
             //I add this temp, but we have to find a workaround
-            bitset<FING_NBR_BITS> tempFing;
+            Fingerprint tempFing;
             for(j=0; j < 3-i; j++)
             {
                 tempFing = this->hashDES(pass);
@@ -154,7 +158,7 @@ void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
     if(id >= 0)
     {
         cout << "Password found. It is: ";
-        for(i=0; i < PASS_NBR_BITS; i++)
+        for(i=0; i < PASS_SIZE; i++)
             cout << pass[i];
         cout << endl;
 
@@ -167,10 +171,10 @@ void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
 
         //Useful for the presentation
         cout << "Original fingerprint:";
-        for(i=0; i < FING_NBR_BITS; i++)
+        for(i=0; i < FING_SIZE; i++)
             cout << originalFingerprint[i];
         cout << endl << "Found fingerprint:";
-        for(i=0; i < FING_NBR_BITS; i++)
+        for(i=0; i < FING_SIZE; i++)
             cout << fingerprint[i];
     }
     else
@@ -180,10 +184,10 @@ void RainbowAttack::findPassword(bitset<FING_NBR_BITS> fingerprint)
 }
 
 void RainbowAttack::insertionSort()
-{//sort the rainbow table according to the fingerprint.
+{	//sort the rainbow table according to the fingerprint.
     int i, j;
-    bitset<PASS_NBR_BITS> tempDic;
-    bitset<FING_NBR_BITS> temp;
+    Password tempDic;
+    Fingerprint temp;
 
     for(i=1; i < m_tablesLength; i++)
     {
@@ -201,9 +205,11 @@ void RainbowAttack::insertionSort()
 
 }
 
-int RainbowAttack::intoTables(bitset<FING_NBR_BITS> toFind)
-{//Dichotomic search which says if we find the fingerprint (toFind variable) into m_tables and its position
-    int low=0, high=m_tablesLength-1, middle;
+int RainbowAttack::inTable(Fingerprint toFind)
+{//Dichotomic search which says if we find the fingerprint (toFind variable) in m_tables and its position
+    int low=0;
+    int middle;
+    int high=m_tablesLength-1;
 
     do
     {
@@ -221,7 +227,7 @@ int RainbowAttack::intoTables(bitset<FING_NBR_BITS> toFind)
         return -1;
 }
 
-bitset<FING_NBR_BITS> RainbowAttack::hashDES(bitset<PASS_NBR_BITS> reducedPass)
+Fingerprint RainbowAttack::hashDES(Password reducedPass)
 {
 
 	//Beware, the message encoded with DES is constant!
@@ -242,22 +248,20 @@ bitset<FING_NBR_BITS> RainbowAttack::hashDES(bitset<PASS_NBR_BITS> reducedPass)
 	temp.set(7,0);//bit de parité, on s'en fout, en soit.
 	key[6] = temp.to_ulong();
 
-
 	byte cipher[CryptoPP::DES::BLOCKSIZE];
-
 	CryptoPP::ECB_Mode<CryptoPP::DES>::Encryption e;
 	e.SetKey(key,sizeof(key));
-	e.ProcessData(cipher,message,sizeof(message));
+	e.ProcessData(cipher,MESSAGE,sizeof(MESSAGE));
 
 	//Not very nice way to do it.
 	bitset<8> temp1 = cipher[CryptoPP::DES::BLOCKSIZE-2];
 	bitset<8> temp2 = cipher[CryptoPP::DES::BLOCKSIZE-1];
 	bitset<8> temp3 = cipher[CryptoPP::DES::BLOCKSIZE];
-
-	bitset<FING_NBR_BITS> fingerprint(string(temp1.to_string()+temp2.to_string()
+	
+	Fingerprint fingerprint(string(temp1.to_string()+temp2.to_string()
 												+temp3.to_string()));
 
 	//cout << "fingerprint: '" << fingerprint << "'" << endl;
-
+	
 	return fingerprint;
 }

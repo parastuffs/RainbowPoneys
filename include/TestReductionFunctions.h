@@ -10,7 +10,7 @@ class TestReductionFunctions
         ~TestReductionFunctions();
     private:
         static int numberOfCollisions(RainbowAttack* Rainbow, int reductionFunction);
-        static int intoTables(bitset<PASS_NBR_BITS> word, int tablesLength, bitset<PASS_NBR_BITS> tables[]);
+        static int inTable(Password word, int tablesLength, Password tables[]);
 };
 
 #endif // TESTREDUCTIONFUNCTIONS_H

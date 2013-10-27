@@ -27,11 +27,11 @@ void TestReductionFunctions::comparisonReductionFunctions()
 int TestReductionFunctions::numberOfCollisions(RainbowAttack* Rainbow, int reductionFunction)
 {
     int i, j, limit, tablesLength=0;
-    limit = pow(2, PASS_NBR_BITS);
-    bitset<PASS_NBR_BITS> pass;
-    bitset<PASS_NBR_BITS> word;
-    bitset<FING_NBR_BITS> fingPrint;
-    bitset<PASS_NBR_BITS> tables[4096];//We don't need bitset<FING_NBR_BITS> here because we won't save the fingerprints, it will be the fingerprint after the reduction function
+    limit = pow(2, PASS_SIZE);
+    Password pass;
+    Password word;
+    Fingerprint fingPrint;
+    Password tables[4096];//We don't need Fingerprint here because we won't save the fingerprints, it will be the fingerprint after the reduction function
 
     for(i=0; i < limit ; i++)
     {
@@ -47,11 +47,11 @@ int TestReductionFunctions::numberOfCollisions(RainbowAttack* Rainbow, int reduc
         //We don't have to hash one more time, it's useless for this test
         //We watch if the password already exists in the tables, if it does,
         //we go to the next word without saving the current
-        if(intoTables(word, tablesLength, tables) >= 0)
+        if(inTable(word, tablesLength, tables) >= 0)
             continue;
 
         //We save the final word
-        for(j=0; j < PASS_NBR_BITS; j++)
+        for(j=0; j < PASS_SIZE; j++)
         	tables[tablesLength].set(j,word[j]);
         //useless to save the password into the dictionnary
         tablesLength++;
@@ -60,7 +60,7 @@ int TestReductionFunctions::numberOfCollisions(RainbowAttack* Rainbow, int reduc
     return 4096 - tablesLength;
 }
 
-int TestReductionFunctions::intoTables(bitset<PASS_NBR_BITS> word, int tablesLength, bitset<PASS_NBR_BITS> tables[])
+int TestReductionFunctions::inTable(Password word, int tablesLength, Password tables[])
 {
     int i, j;
     bool ok=false;
@@ -71,7 +71,7 @@ int TestReductionFunctions::intoTables(bitset<PASS_NBR_BITS> word, int tablesLen
     {
         //We check every bit
         ok=true;
-        for(j=0; j < PASS_NBR_BITS; j++)
+        for(j=0; j < PASS_SIZE; j++)
             if(tables[i][j] != word[j])
                 ok=false;
         if(ok == true)

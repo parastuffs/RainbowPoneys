@@ -4,45 +4,44 @@
 #include <iostream>
 #include <bitset>
 #include <math.h>
-#include <string>
+//#include <string>
 #include "crypto++/des.h"
 #include "crypto++/modes.h"
 #include "crypto++/filters.h"
 #include "crypto++/osrng.h"
 #include "crypto++/hex.h"
-
-#include <iomanip>
-#include <cstdio>
-
+#include <iomanip> //utile...?
+#include <cstdio> //utile...?
 using namespace std;
 
-int const PASS_NBR_BITS = 12;
-int const HASH_NBR_BITS = 64;
-int const FING_NBR_BITS = 24;
-byte const message[] = {0,0,0,0,0,0,0,0};//64 bits
+#define PASS_SIZE 12
+#define FING_SIZE 24
+
+typedef bitset<12> Password;
+typedef bitset<24> Fingerprint;
+const byte MESSAGE[] = {0,0,0,0,0,0,0,0}; //64 bits
 
 class RainbowAttack
 {
-    public:
-        RainbowAttack();
-        void findPassword(bitset<FING_NBR_BITS> fingerprint);
-        bitset<PASS_NBR_BITS> blue(bitset<FING_NBR_BITS> fingerprint);
-        bitset<PASS_NBR_BITS> green(bitset<FING_NBR_BITS> fingerprint);
-        bitset<PASS_NBR_BITS> yellow(bitset<FING_NBR_BITS> fingerprint);
-        bitset<PASS_NBR_BITS> red(bitset<FING_NBR_BITS> fingerprint);
-     	bitset<PASS_NBR_BITS> reductionFunction(int number, bitset<FING_NBR_BITS> fingerprint);
+	public:
+		RainbowAttack();
+		~RainbowAttack();
+		void findPassword(Fingerprint fingerprint);
+		Fingerprint hashDES(Password reducedPass);
+		Password blue(Fingerprint fingerprint);
+		Password green(Fingerprint fingerprint);
+		Password yellow(Fingerprint fingerprint);
+		Password red(Fingerprint fingerprint);
+		Password reductionFunction(int number, Fingerprint fingerprint);
+		
+	private:
+		void tablesCreation();
+		int inTable(Fingerprint fingerprint);
+		void insertionSort();
 
-        bitset<FING_NBR_BITS> hashDES(bitset<PASS_NBR_BITS> reducedPass);
-        ~RainbowAttack();
-    protected:
-    private:
-        void tablesCreation();
-        int intoTables(bitset<FING_NBR_BITS> fingerprint);
-        void insertionSort();
-
-        bitset<PASS_NBR_BITS> m_dictionary[4096];
-        bitset<FING_NBR_BITS> m_tables[4096];
-        int m_tablesLength;
+		Password m_dictionary[4096]; //table with passwords
+		Fingerprint m_tables[4096]; //table with their rainbow fingerprint
+		int m_tablesLength;
 };
 
 #endif // RAINBOWATTACK_H
