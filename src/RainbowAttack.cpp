@@ -1,8 +1,6 @@
 #include "../include/RainbowAttack.h"
 #include "../include/bitsetFunctions.h"
 
-//Useful : http://www.cplusplus.com/reference/bitset/bitset/
-
 RainbowAttack::RainbowAttack()
 {
 	m_tablesLength=0;
@@ -20,7 +18,7 @@ void RainbowAttack::tablesCreation()
 	Fingerprint fingPrint;
 	Fingerprint previousFingPrint;
 
-	cout<<"Rainbow table : \n"<<endl;
+	//cout<<"Rainbow table : \n"<<endl;
 	for(i=0; i < limit ; i++) //limit = 4096
 	{
 		// Conversion from int to bitset
@@ -43,7 +41,7 @@ void RainbowAttack::tablesCreation()
 		m_tablesLength++;
 	}
 
-	//We sort the table
+	//Sort the table
 	insertionSort();
 
 	//Delete the duplicate fingerprints
@@ -57,16 +55,16 @@ void RainbowAttack::tablesCreation()
 		}
 		previousFingPrint = m_tables[i];
 	}
-
 	m_tablesLength = j;
 /*
 	for(int i=0;i<m_tablesLength;i++) {
-		cout<<"Pass="<<m_dictionary[i];
+		cout<<"Line="<<i;
+		cout<<": Pass="<<m_dictionary[i];
 		cout<<" -> Fingerprint="<<m_tables[i]<<endl;
 	}
-
+*/	
 	cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
-	*/
+
 }
 
 Password RainbowAttack::reductionFunction(int number, 
@@ -91,50 +89,35 @@ Password RainbowAttack::reductionFunction(int number,
 Password RainbowAttack::blue(Fingerprint fingerprint)
 {
 	// First reduction function
-	//fingerprint=mirror(fingerprint);
-	//fingerprint=rotate(fingerprint,2);
-	//return hopOne(fingerprint);
-	//return keepRight(fingerprint);
-	//return keepLeft(fingerprint);
-	//return hopTwo(fingerprint);
-	return sumTwo(fingerprint);
+	
+	fingerprint=mirror(fingerprint);
+	fingerprint=rotate(fingerprint,15);
+	return keepLeft(fingerprint);
 }
 
 Password RainbowAttack::green(Fingerprint fingerprint)
 {
 	// Second reduction function
+
 	fingerprint=flipAll(fingerprint);
-	//fingerprint=rotate(fingerprint,5);
-	//return hopOne(fingerprint);
-	//return keepRight(fingerprint);
-	//return keepLeft(fingerprint);
-	//return hopTwo(fingerprint);
-	return sumTwo(fingerprint);
+	return keepLeft(fingerprint);
 }
 
 Password RainbowAttack::yellow(Fingerprint fingerprint)
 {
 	// Third reduction function
-	fingerprint=mirror(fingerprint);
-	//fingerprint=rotate(fingerprint,9);
-	//fingerprint=flipAll(fingerprint);
-	//return hopOne(fingerprint);
-	//return keepRight(fingerprint);
-	//return keepLeft(fingerprint);
-	//return hopTwo(fingerprint);
-	return sumTwo(fingerprint);
+
+	fingerprint=rotate(fingerprint,21);
+	return keepLeft(fingerprint);
 }
 
 Password RainbowAttack::red(Fingerprint fingerprint)
 {
 	// Fourth reduction function
-	fingerprint=rotate(fingerprint, 7);
-	fingerprint=mirror(fingerprint);
-	//return hopOne(fingerprint);
-	//return keepRight(fingerprint);
-	//return keepLeft(fingerprint);
-	//return hopTwo(fingerprint);
-	return sumTwo(fingerprint);
+	
+	fingerprint=flipAll(fingerprint);
+	fingerprint=rotate(fingerprint,1);
+	return keepLeft(fingerprint);
 }
 
 void RainbowAttack::findPassword(Fingerprint fingerprint)
@@ -156,8 +139,7 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
         if(id >= 0)
         {//We try to have the password corresponding to the current step
 			found = true;
-			cout << "The fellowing FP has been found in the table: " << fingerprint << endl;
-
+			cout << "The following FP has been found in the table: " << fingerprint << endl;
             //We take the password corresponding to the actual fingerprint
             //(but it's not the true password because there were 4 reductions
             //and 5 hashes), whatever the value of i

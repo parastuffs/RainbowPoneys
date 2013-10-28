@@ -1,9 +1,6 @@
 #include "../include/TestReductionFunctions.h"
 
-TestReductionFunctions::TestReductionFunctions()
-{
-    //ctor
-}
+TestReductionFunctions::TestReductionFunctions(){}
 
 //Print the number of collisions of each reduction function
 void TestReductionFunctions::comparisonReductionFunctions()

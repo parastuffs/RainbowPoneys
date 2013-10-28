@@ -3,7 +3,9 @@
 /* ****** Functions that modify the bitset ****** */
 
 Fingerprint mirror(Fingerprint fingerprint)
-{
+{ 
+	//for a bitset 'abcdef', returns 'fedcba'
+	
 	Fingerprint result;
 	for (int i=0;i<FING_SIZE;i++)
 		result[i]=fingerprint[FING_SIZE-1-i];
@@ -12,12 +14,16 @@ Fingerprint mirror(Fingerprint fingerprint)
 
 Fingerprint flipAll(Fingerprint fingerprint)
 {
+	//invert 1's and 0's
+	
 	return fingerprint.flip();
 }
 
 Fingerprint rotate(Fingerprint fingerprint,int round=1)
 {
-	//rotate to the right
+	//rotates the fingerprint bitset to the right by 'round' bits
+	//e.g. a bitset 'abcdef', rotated by 2 bits to the right
+	//would become 'efabcd'
 
 	Fingerprint result;
 	if(round>=0)
@@ -29,10 +35,7 @@ Fingerprint rotate(Fingerprint fingerprint,int round=1)
 			result[FING_SIZE-shift+i]=fingerprint[i];
 	}
 	else
-	{
-		//cout<<"ERROR: function rotate"<<endl;
-		result = fingerprint;
-	}
+		result = fingerprint; //no rotation in case of wrong parameter
 	return result;
 }
 
@@ -40,8 +43,9 @@ Fingerprint rotate(Fingerprint fingerprint,int round=1)
 
 Password keepLeft(Fingerprint fingerprint)
 {
-	/* keeps the MSB part */
-
+	/* password = the MSB part of the fingerprint */
+	//N.B. MSB = Most Significant Bit
+	
 	Password result;	
 	for (int i=0;i<PASS_SIZE;i++)
 		result[i]=fingerprint[PASS_SIZE+i];
@@ -49,7 +53,8 @@ Password keepLeft(Fingerprint fingerprint)
 
 Password keepRight(Fingerprint fingerprint)
 {
-	/* keeps the LSB part */
+	/* password = the LSB part of fingerprint */
+	//N.B. LSB = Least Significant Bit
 	
 	Password result;
 	for (int i=0;i<PASS_SIZE;i++)
@@ -59,8 +64,8 @@ Password keepRight(Fingerprint fingerprint)
 
 Password hopOne(Fingerprint fingerprint)
 {
-	/* keeps one bit, discards one bit */
-
+	/* uses one bit of fingerprint to make the password,
+	skips the next bit, and so on */
 	Password result;
 	for (int i=0;i<PASS_SIZE;i++)
 		result[i]=fingerprint[2*i];
@@ -69,7 +74,8 @@ Password hopOne(Fingerprint fingerprint)
 
 Password hopTwo(Fingerprint fingerprint)
 {
-	/* keeps two bits, discards two bits */
+	/* uses two bits of fingerprint to make the password,
+	skips the next two bits, and so on */
 
 	Password result;
 	for (int i=0;i<PASS_SIZE;i++)
@@ -84,12 +90,12 @@ Password hopTwo(Fingerprint fingerprint)
 
 Password sumTwo(Fingerprint fingerprint)
 {
-	/* sums two bits and adds the result  */
+	/* sums bits of fingerprint by groups of two, and the resulting bit
+	is concatenated with the other results to form the password */
 	
 	Password result;
 	for (int i=0;i<PASS_SIZE;i++)
 		result[i]=fingerprint[2*i] xor fingerprint[2*i+1]; 
-		//alternative notation : a xor b <=> a^b
 	return result;
 }
 
