@@ -156,7 +156,7 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
         }
 		if(!found)
         {//fingerprint not found
-			for(int j=i; j < 4; j++) {
+			for(int j=3-i; j < 4; j++) {
             	pass = this->reductionFunction(j, fingerprint);
             	fingerprint = this->hashDES(pass);
 			}
@@ -181,7 +181,7 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
     }
     else
     {
-        cout << "Rainbow table incomplete.";
+        cout << "Rainbow table incomplete." << endl;
     }
 }
 
