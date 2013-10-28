@@ -12,14 +12,13 @@ RainbowAttack::~RainbowAttack() {}
 void RainbowAttack::tablesCreation()
 {
 	//We list all the existing words
-	int i, j, limit;
+	int j, limit;
 	limit = pow(2, PASS_SIZE);
 	Password pass, tmpPass;
 	Fingerprint fingPrint;
 	Fingerprint previousFingPrint;
 
-	//cout<<"Rainbow table : \n"<<endl;
-	for(i=0; i < limit ; i++) //limit = 4096
+	for(int i=0; i < limit ; i++)
 	{
 		// Conversion from int to bitset
 		pass=i;
@@ -45,26 +44,17 @@ void RainbowAttack::tablesCreation()
 	insertionSort();
 
 	//Delete the duplicate fingerprints
-	previousFingPrint=m_tables[0];
 	j=1;
-	for(i=1; i < m_tablesLength; i++) {
-		if(previousFingPrint != m_tables[i]) {
+	for(int i=1; i < m_tablesLength; i++) {
+		if(m_tables[i-1] != m_tables[i]) {
 			m_tables[j] = m_tables[i];
 			m_dictionary[j] = m_dictionary[i];
 			j++;
 		}
-		previousFingPrint = m_tables[i];
 	}
 	m_tablesLength = j;
-/*
-	for(int i=0;i<m_tablesLength;i++) {
-		cout<<"Line="<<i;
-		cout<<": Pass="<<m_dictionary[i];
-		cout<<" -> Fingerprint="<<m_tables[i]<<endl;
-	}
-*/	
-	cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 
+	cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
 
 Password RainbowAttack::reductionFunction(int number, 
@@ -127,64 +117,30 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
     Fingerprint originalFingerprint;
     originalFingerprint = fingerprint;
 	bool found=false;
-	cout << ">Entering the cracking method." << endl;
-	cout << "We want to find the password of the fingerprint: " << originalFingerprint << endl;
-
+	
     //Look if the fingerprint is into the tables, and give its corresponding ID
     for(int i=0 ; i < 4 && !found; i++)
     {
         id=this->inTable(fingerprint);
-		cout << "Iteration i=" << i << endl;
 
         if(id >= 0)
         {//We try to have the password corresponding to the current step
-			found = true;
-			cout << "The following FP has been found in the table: " << fingerprint << endl;
-            //We take the password corresponding to the actual fingerprint
-            //(but it's not the true password because there were 4 reductions
-            //and 5 hashes), whatever the value of i
 			pass = m_dictionary[id].to_ulong();
 
-
-            //We make the intermediate steps to find the true password
-            //(if i=3 the for() is useless)
-
-            //I add this temp, but we have to find a workaround
             Fingerprint tempFing;
-			/*
-			for(int k=-1; k < i-1;) {
-				k++;
-				for(int j=0; j < 4-i+k; j++)
-				{
-					cout << j << " ";
-					tempFing = this->hashDES(pass);
+			for(int j=0; j < 4 && !found; j++) {
+				tempFing = this->hashDES(pass);
+				if(tempFing == originalFingerprint) {
+					found = true;
+				}
+				if(!found) {
 					pass = this->reductionFunction(j, tempFing);
 				}
-				cout << endl;
 			}
-			*/
-			cout << "## In the loop" << endl;
-			for(int j=0; j < 4; j++) {
-				cout << "Coming from pass="<<pass << endl;
-				tempFing = this->hashDES(pass);
-				pass = this->reductionFunction(j, tempFing);
-				cout << "Ending with pass="<<pass<<" and FP="<<tempFing<<endl;
-				if(tempFing == originalFingerprint) {
-					cout << "BINGO" << endl;
-				}
-			}
-				
         }
-		else
+		if(!found)
         {//fingerprint not found
-			cout << "Didn't find the FP, reducing/hashing from " << i << " to 3" << endl;
-			/*
 			for(int j=3-i; j < 4; j++) {
-            	pass = this->reductionFunction(j, fingerprint);
-            	fingerprint = this->hashDES(pass);
-			}
-			*/
-			for(int j=i; j < 4; j++) {
             	pass = this->reductionFunction(j, fingerprint);
             	fingerprint = this->hashDES(pass);
 			}
@@ -209,7 +165,7 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
     }
     else
     {
-        cout << "Nothing found...";
+        cout << "Rainbow table incomplete." << endl;
     }
 }
 
@@ -261,23 +217,15 @@ int RainbowAttack::inTable(Fingerprint toFind)
 
 Fingerprint RainbowAttack::hashDES(Password reducedPass)
 {
-
-	//Beware, the message encoded with DES is constant!
-	//The only thing that changes from one iteration to the other
-	//is the key, which is extended to 64 bits.
 	byte key[8] = {0,0,0,0,0,0,0,0};
-	//On a le bit de parité en fin de chaque byte. Les 6 premiers bytes seront à 0.
-	//Ensuite, Le 1er bit du 8e byte est le bit de parité. On le met à 0, osef.
-	//Ensuite on doit décaler les 8 bit utiles d'une place vers la gauche (on multiplie
-	//par 2). Le 8e sera donc renvoyé vers le  7e byte. Attention, il sera envoyé à la
-	//deuxième position du 7e byte puisque la première est occupée par le bit de parité.
-	//On aura donc quelque chose qui ressemble à :
-	//| 0 0 b12 b11 b10 b9 b8 p7 | b7 b6 b5 b4 b3 b2 b1 p8 |
-	//où pi est le bit de parité du byte i.
-	bitset<8> temp = (reducedPass << 1).to_ulong();//On garde bits 7 à 1
+
+	//Since we won't check them, the value of the parity bits doesn't matter.
+	//The next few lines will shift the last 12 bits of the 64 bits key
+	//so that the last bit of each byte can hold a parity byte.
+	bitset<8> temp = (reducedPass << 1).to_ulong();
 	key[7] = temp.to_ulong();
-	temp = (reducedPass >> 7).to_ulong();//On garde bits 12 à 8
-	temp.set(7,0);//bit de parité, on s'en fout, en soit.
+	temp = (reducedPass >> 7).to_ulong();
+	temp.set(7,0);
 	key[6] = temp.to_ulong();
 
 	byte cipher[CryptoPP::DES::BLOCKSIZE];
@@ -285,15 +233,12 @@ Fingerprint RainbowAttack::hashDES(Password reducedPass)
 	e.SetKey(key,sizeof(key));
 	e.ProcessData(cipher,MESSAGE,sizeof(MESSAGE));
 
-	//Not very nice way to do it.
+	//Keeping only the last 24 bits of the cipher.
 	bitset<8> temp1 = cipher[CryptoPP::DES::BLOCKSIZE-2];
 	bitset<8> temp2 = cipher[CryptoPP::DES::BLOCKSIZE-1];
 	bitset<8> temp3 = cipher[CryptoPP::DES::BLOCKSIZE];
 
 	Fingerprint fingerprint(string(temp1.to_string()+temp2.to_string()
 												+temp3.to_string()));
-
-	//cout << "fingerprint: '" << fingerprint << "'" << endl;
-
 	return fingerprint;
 }
