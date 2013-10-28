@@ -1,10 +1,14 @@
 #include "include/RainbowAttack.h"
 #include "include/TestReductionFunctions.h"
+#include <iostream>
+#include <string>
+#include <fstream>
 
 int main()
 {
 //	TestReductionFunctions::comparisonReductionFunctions();
 	//Fingerprint fingerprint(string("101010101010101010101010"));
+	/*
 	Fingerprint fingerprint(string("111110100101011100010111"));
 	Fingerprint fingerprint1(string("111101101001011100011011"));
 	Fingerprint fingerprint2(string("011011010100001000000000"));
@@ -16,8 +20,25 @@ int main()
 	Fingerprint fingerprint8(string("010101011000000000010101"));
 	Fingerprint fingerprint9(string("100101010111110000010110"));
 	Fingerprint fingerprint10(string("101010010111111100011001"));
+	*/
 	//Fingerprint fingerprint(string("000010110001010100011100"));
 	RainbowAttack *Rainbow = new RainbowAttack();
+
+
+	string line;
+	ifstream file("FP");
+	if(file.is_open()) {
+		while(getline(file,line)) {
+			Fingerprint fingerprint(line);
+			Rainbow->findPassword(fingerprint);
+		}
+	}
+	file.close();
+
+	cout << "Final found: " << Rainbow->getFoundNum() << endl;
+	cout << "table size: " << Rainbow->getTableSize() << endl;
+
+	/*
 	Rainbow->findPassword(fingerprint);
 	Rainbow->findPassword(fingerprint1);
 	Rainbow->findPassword(fingerprint2);
@@ -29,6 +50,6 @@ int main()
 	Rainbow->findPassword(fingerprint8);
 	Rainbow->findPassword(fingerprint9);
 	Rainbow->findPassword(fingerprint10);
-
+*/
 	return 0;
 }

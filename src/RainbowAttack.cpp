@@ -4,6 +4,7 @@
 RainbowAttack::RainbowAttack()
 {
 	m_tablesLength=0;
+	m_foundNum = 0;
 	this->tablesCreation();
 }
 
@@ -40,6 +41,12 @@ void RainbowAttack::tablesCreation()
 		m_tablesLength++;
 	}
 
+	for(int i=0;i<m_tablesLength; i++) {
+		cout << hashDES(m_dictionary[i]);
+		if(i<m_tablesLength-1)
+			cout << endl;
+	}
+
 	//Sort the table
 	insertionSort();
 
@@ -54,7 +61,7 @@ void RainbowAttack::tablesCreation()
 	}
 	m_tablesLength = j;
 
-	cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
+	//cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
 
 Password RainbowAttack::reductionFunction(int number, 
@@ -79,34 +86,28 @@ Password RainbowAttack::reductionFunction(int number,
 Password RainbowAttack::blue(Fingerprint fingerprint)
 {
 	// First reduction function
-	
-	fingerprint=mirror(fingerprint);
-	fingerprint=rotate(fingerprint,15);
+	fingerprint=rotate(fingerprint,1);
 	return keepLeft(fingerprint);
 }
 
 Password RainbowAttack::green(Fingerprint fingerprint)
 {
 	// Second reduction function
-
-	fingerprint=flipAll(fingerprint);
+	fingerprint=rotate(fingerprint,2);
 	return keepLeft(fingerprint);
 }
 
 Password RainbowAttack::yellow(Fingerprint fingerprint)
 {
 	// Third reduction function
-
-	fingerprint=rotate(fingerprint,21);
+	fingerprint=rotate(fingerprint,3);
 	return keepLeft(fingerprint);
 }
 
 Password RainbowAttack::red(Fingerprint fingerprint)
 {
 	// Fourth reduction function
-	
-	fingerprint=flipAll(fingerprint);
-	fingerprint=rotate(fingerprint,1);
+	fingerprint=rotate(fingerprint,4);
 	return keepLeft(fingerprint);
 }
 
@@ -135,6 +136,7 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
 				}
 				if(!found) {
 					pass = this->reductionFunction(j, tempFing);
+					//pass = this->reductionFunction(j, tempFing);
 				}
 			}
         }
@@ -142,6 +144,7 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
         {//fingerprint not found
 			for(int j=3-i; j < 4; j++) {
             	pass = this->reductionFunction(j, fingerprint);
+            	//pass = this->reductionFunction(j, fingerprint);
             	fingerprint = this->hashDES(pass);
 			}
         }
@@ -156,8 +159,10 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
         if(fingerprint != originalFingerprint) {
             cout << "Something is wrong" << endl;
 		}
-        else
+        else {
+			m_foundNum++;
             cout << "Mot de passe vraiment trouve :D!";
+		}
 
         //Useful for the presentation
         cout << "Original fingerprint: " << originalFingerprint << endl;
