@@ -27,14 +27,14 @@ class RainbowAttack
 		RainbowAttack();
 		~RainbowAttack();
 		void findPassword(Fingerprint fingerprint);
-	private:
 		Fingerprint hashDES(Password reducedPass);
+		Password reductionFunction(int number, Fingerprint fingerprint);
+	private:
 		Password blue(Fingerprint fingerprint);
 		Password green(Fingerprint fingerprint);
 		Password yellow(Fingerprint fingerprint);
 		Password red(Fingerprint fingerprint);
-		Password reductionFunction(int number, Fingerprint fingerprint);
-		
+
 		void tablesCreation();
 		int inTable(Fingerprint fingerprint);
 		void insertionSort();
