@@ -41,12 +41,6 @@ void RainbowAttack::tablesCreation()
 		m_tablesLength++;
 	}
 
-	for(int i=0;i<m_tablesLength; i++) {
-		cout << hashDES(m_dictionary[i]);
-		if(i<m_tablesLength-1)
-			cout << endl;
-	}
-
 	//Sort the table
 	insertionSort();
 
@@ -60,8 +54,6 @@ void RainbowAttack::tablesCreation()
 		}
 	}
 	m_tablesLength = j;
-
-	//cout<<"Length of the Rainbow Table: "<<m_tablesLength<<endl;
 }
 
 Password RainbowAttack::reductionFunction(int number, 
@@ -136,7 +128,6 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
 				}
 				if(!found) {
 					pass = this->reductionFunction(j, tempFing);
-					//pass = this->reductionFunction(j, tempFing);
 				}
 			}
         }
@@ -144,7 +135,6 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
         {//fingerprint not found
 			for(int j=3-i; j < 4; j++) {
             	pass = this->reductionFunction(j, fingerprint);
-            	//pass = this->reductionFunction(j, fingerprint);
             	fingerprint = this->hashDES(pass);
 			}
         }
@@ -152,25 +142,10 @@ void RainbowAttack::findPassword(Fingerprint fingerprint)
 
     if(found)
     {
-        cout << "Password found. It is: " << pass << endl;
-
-        //Vérification (pour déboguage de l'implémentation de l'algorithme)...
-        fingerprint = this->hashDES(pass);
-        if(fingerprint != originalFingerprint) {
-            cout << "Something is wrong" << endl;
-		}
-        else {
-			m_foundNum++;
-            cout << "Mot de passe vraiment trouve :D!";
-		}
-
-        //Useful for the presentation
-        cout << "Original fingerprint: " << originalFingerprint << endl;
-        cout << "Found fingerprint: "<< fingerprint << endl;
-    }
-    else
-    {
-        cout << "Rainbow table incomplete." << endl;
+        m_foundNum++;
+        cout << "Password found. It is: " << pass;
+		//Useful for the presentation
+        cout << ", original fingerprint: " << originalFingerprint << endl;
     }
 }
 

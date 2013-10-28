@@ -25,7 +25,7 @@ public:
 	~RainbowAttack();
 	void findPassword(Fingerprint fingerprint);
 	int getFoundNum() {return m_foundNum;}
-	int getTableSize() {return m_tablesLength;}
+
 private:
 	Fingerprint hashDES(Password reducedPass);
 	Password reductionFunction(int number, Fingerprint fingerprint);
